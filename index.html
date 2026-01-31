@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Space Exploration - Hamburg AI Hackathon</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <canvas id="canvas"></canvas>
+        
+        <!-- UI Overlay -->
+        <div id="ui-overlay">
+            <div class="panel info-panel">
+                <h2>Space Exploration</h2>
+                <p id="planet-info">Click on a planet to learn more</p>
+            </div>
+            
+            <div class="panel controls-panel">
+                <h3>Controls</h3>
+                <ul>
+                    <li><strong>Left Click + Drag:</strong> Rotate view</li>
+                    <li><strong>Right Click + Drag:</strong> Pan view</li>
+                    <li><strong>Scroll:</strong> Zoom in/out</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Three.js Library -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+
+    <!-- Main Application -->
+    <script type="module" src="main.js"></script>
+</body>
+</html>
