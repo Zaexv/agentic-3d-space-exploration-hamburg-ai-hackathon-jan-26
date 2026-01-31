@@ -7,8 +7,10 @@
 export const PLANETS_DATA = [
     {
         name: 'Mercury',
+        planetType: 'rocky',
         radius: 3,
         color: 0x8c7853,
+        detailColor: 0x6b5d4f,
         orbitRadius: 40,
         orbitSpeed: 0.02,
         rotationSpeed: 0.005,
@@ -23,8 +25,10 @@ export const PLANETS_DATA = [
     },
     {
         name: 'Venus',
+        planetType: 'rocky',
         radius: 6,
         color: 0xffc649,
+        detailColor: 0xe6b85c,
         orbitRadius: 60,
         orbitSpeed: 0.015,
         rotationSpeed: 0.003,
@@ -38,8 +42,10 @@ export const PLANETS_DATA = [
     },
     {
         name: 'Earth',
+        planetType: 'rocky',
         radius: 6.5,
         color: 0x4a90e2,
+        detailColor: 0x2d5aa8,
         orbitRadius: 80,
         orbitSpeed: 0.01,
         rotationSpeed: 0.02,
@@ -53,8 +59,10 @@ export const PLANETS_DATA = [
     },
     {
         name: 'Mars',
+        planetType: 'rocky',
         radius: 4,
         color: 0xcd5c5c,
+        detailColor: 0x8b3a3a,
         orbitRadius: 100,
         orbitSpeed: 0.008,
         rotationSpeed: 0.018,
@@ -68,8 +76,10 @@ export const PLANETS_DATA = [
     },
     {
         name: 'Jupiter',
+        planetType: 'gasGiant',
         radius: 12,
         color: 0xc88b3a,
+        gasColors: [0xc88b3a, 0xe6a85c, 0xf4d7a8, 0xd4a05a],
         orbitRadius: 140,
         orbitSpeed: 0.005,
         rotationSpeed: 0.04,
@@ -83,8 +93,10 @@ export const PLANETS_DATA = [
     },
     {
         name: 'Saturn',
+        planetType: 'gasGiant',
         radius: 10,
         color: 0xfad5a5,
+        gasColors: [0xfad5a5, 0xf4c78a, 0xe8b975, 0xd4a05a],
         orbitRadius: 180,
         orbitSpeed: 0.003,
         rotationSpeed: 0.038,
@@ -98,6 +110,7 @@ export const PLANETS_DATA = [
     },
     {
         name: 'Uranus',
+        planetType: 'iceGiant',
         radius: 8,
         color: 0x4fd0e7,
         orbitRadius: 220,
@@ -113,6 +126,7 @@ export const PLANETS_DATA = [
     },
     {
         name: 'Neptune',
+        planetType: 'iceGiant',
         radius: 7.5,
         color: 0x4169e1,
         orbitRadius: 260,

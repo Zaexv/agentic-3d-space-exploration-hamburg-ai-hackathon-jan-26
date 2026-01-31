@@ -1,25 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>3D Space Exploration - Hamburg AI Hackathon</title>
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
     <div id="app">
         <canvas id="canvas"></canvas>
-        
+
         <!-- UI Overlay -->
         <div id="ui-overlay">
             <div class="panel info-panel">
                 <h2>Space Exploration</h2>
                 <p id="planet-info">Click on a planet to learn more</p>
+
+                <!-- AI Description Section -->
+                <div id="ai-description" class="ai-section" style="display: none;">
+                    <h4>AI Insights</h4>
+                    <p id="ai-content" class="ai-content"></p>
+                    <div id="loading-spinner" class="spinner" style="display: none;">
+                        <div class="spinner-ring"></div>
+                        Generating AI description...
+                    </div>
+                    <!-- Narration Controls -->
+                    <button id="narrate-btn" class="btn-narrate" style="display: none;">
+                        🔊 Listen
+                    </button>
+                </div>
             </div>
-            
+
             <div class="panel controls-panel">
                 <h3>Controls</h3>
                 <ul>
+                    <li><strong>Click Planet:</strong> Travel & get AI insights</li>
                     <li><strong>Left Click + Drag:</strong> Rotate view</li>
                     <li><strong>Right Click + Drag:</strong> Pan view</li>
                     <li><strong>Scroll:</strong> Zoom in/out</li>
@@ -41,4 +58,5 @@
     <!-- Main Application -->
     <script type="module" src="main.js"></script>
 </body>
+
 </html>

@@ -57,7 +57,69 @@ export function formatDistance(distance, unit = 'AU') {
 }
 
 /**
- * Raycaster helper for object selection
+ * Raycaster helper for planet selection
+ * Returns the full planet object for camera travel
+ */
+export function setupPlanetSelector(camera, canvas, planets, onPlanetClick, onPlanetHover) {
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+    let currentHoveredPlanet = null;
+
+    // Click handler
+    canvas.addEventListener('click', (event) => {
+        // Calculate mouse position in normalized device coordinates
+        const rect = canvas.getBoundingClientRect();
+        mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+        // Update raycaster
+        raycaster.setFromCamera(mouse, camera);
+
+        // Check intersection with planets only
+        const planetMeshes = planets.map(p => p.mesh);
+        const intersects = raycaster.intersectObjects(planetMeshes, false);
+
+        if (intersects.length > 0) {
+            const meshObject = intersects[0].object;
+            // Find the planet instance that owns this mesh
+            const planet = planets.find(p => p.mesh === meshObject);
+            if (planet && onPlanetClick) {
+                onPlanetClick(planet);
+            }
+        }
+    });
+
+    // Hover handler (for cursor feedback)
+    canvas.addEventListener('mousemove', (event) => {
+        const rect = canvas.getBoundingClientRect();
+        mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+        raycaster.setFromCamera(mouse, camera);
+        const planetMeshes = planets.map(p => p.mesh);
+        const intersects = raycaster.intersectObjects(planetMeshes, false);
+
+        if (intersects.length > 0) {
+            const meshObject = intersects[0].object;
+            const planet = planets.find(p => p.mesh === meshObject);
+
+            if (planet !== currentHoveredPlanet) {
+                currentHoveredPlanet = planet;
+                canvas.style.cursor = 'pointer';
+                if (onPlanetHover) onPlanetHover(planet);
+            }
+        } else {
+            if (currentHoveredPlanet !== null) {
+                currentHoveredPlanet = null;
+                canvas.style.cursor = 'default';
+                if (onPlanetHover) onPlanetHover(null);
+            }
+        }
+    });
+}
+
+/**
+ * Legacy raycaster for backward compatibility
  */
 export function setupRaycaster(camera, canvas, scene, onObjectClick) {
     const raycaster = new THREE.Raycaster();

@@ -16,13 +16,25 @@ export class StarField {
         const geometry = new THREE.BufferGeometry();
         const positions = [];
         const colors = [];
+        const sizes = [];
+
+        // Color palettes for different star types (Kelvin approximations)
+        const starColors = [
+            new THREE.Color(0x9bb2ff), // O-type (Blue)
+            new THREE.Color(0xbbccff), // B-type (Blue-white)
+            new THREE.Color(0xfbf8ff), // A-type (White)
+            new THREE.Color(0xfff5f2), // F-type (Yellow-white)
+            new THREE.Color(0xfff2a1), // G-type (Yellow - like our Sun)
+            new THREE.Color(0xffd2a1), // K-type (Orange)
+            new THREE.Color(0xffcc6f)  // M-type (Red)
+        ];
 
         // Generate random star positions
         for (let i = 0; i < this.count; i++) {
             // Random position in sphere
             const theta = Math.random() * Math.PI * 2;
             const phi = Math.acos(Math.random() * 2 - 1);
-            const r = this.radius;
+            const r = this.radius * (0.9 + Math.random() * 0.1); // Keep them in a shell
 
             const x = r * Math.sin(phi) * Math.cos(theta);
             const y = r * Math.sin(phi) * Math.sin(theta);
@@ -30,9 +42,17 @@ export class StarField {
 
             positions.push(x, y, z);
 
-            // Random star colors (slight variations of white)
-            const brightness = 0.7 + Math.random() * 0.3;
-            colors.push(brightness, brightness, brightness);
+            // Choose a random star color
+            const color = starColors[Math.floor(Math.random() * starColors.length)].clone();
+
+            // Add slight brightness variation
+            const brightness = 0.5 + Math.random() * 0.5;
+            color.multiplyScalar(brightness);
+
+            colors.push(color.r, color.g, color.b);
+
+            // Random sizes
+            sizes.push(Math.random() * 2.5);
         }
 
         geometry.setAttribute(
@@ -43,14 +63,20 @@ export class StarField {
             'color',
             new THREE.Float32BufferAttribute(colors, 3)
         );
+        geometry.setAttribute(
+            'size',
+            new THREE.Float32BufferAttribute(sizes, 1)
+        );
 
-        // Create points material
+        // Create points material with vertex colors and custom sizing if possible
+        // Note: sizeAttenuation makes stars smaller as they get further
         const material = new THREE.PointsMaterial({
-            size: 1.5,
+            size: 1.2,
             vertexColors: true,
             sizeAttenuation: true,
             transparent: true,
-            opacity: 0.8
+            opacity: 0.9,
+            blending: THREE.AdditiveBlending
         });
 
         this.mesh = new THREE.Points(geometry, material);

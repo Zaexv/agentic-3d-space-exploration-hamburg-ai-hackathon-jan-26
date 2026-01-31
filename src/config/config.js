@@ -1,0 +1,56 @@
+/**
+ * Configuration File
+ * API keys and application settings
+ * 
+ * IMPORTANT: For production, use environment variables or a secure backend
+ * DO NOT commit real API keys to version control
+ */
+
+export const CONFIG = {
+    // OpenAI Configuration
+    openai: {
+        apiKey: 'YOUR_OPENAI_API_KEY_HERE', // Replace with your actual key
+        model: 'gpt-4', // or 'gpt-3.5-turbo' for faster/cheaper responses
+        baseURL: 'https://api.openai.com/v1/chat/completions'
+    },
+
+    // Eleven Labs Configuration (optional)
+    elevenLabs: {
+        apiKey: 'YOUR_ELEVENLABS_API_KEY_HERE', // Replace with your actual key
+        voiceId: '21m00Tcm4TlvDq8ikWAM', // Default voice
+        baseURL: 'https://api.elevenlabs.io/v1/text-to-speech'
+    },
+
+    // Feature flags
+    features: {
+        enableAI: true, // Set to false to disable AI features
+        enableNarration: false, // Set to true when Eleven Labs key is added
+        cacheResponses: true // Cache AI responses to save API calls
+    },
+
+    // AI Prompt Templates
+    prompts: {
+        planetDescription: `You are an expert astronomer providing fascinating information about planets. 
+Given the following planet data, provide an engaging 2-3 sentence description that would interest space enthusiasts:
+
+Planet: {name}
+Type: {composition}
+Atmosphere: {atmosphere}
+Temperature: {surfaceTemp}
+
+Make it educational but captivating.`
+    }
+};
+
+// Simple flag to check if AI is configured
+export function isAIConfigured() {
+    return CONFIG.features.enableAI &&
+        CONFIG.openai.apiKey &&
+        CONFIG.openai.apiKey !== 'YOUR_OPENAI_API_KEY_HERE';
+}
+
+export function isNarrationConfigured() {
+    return CONFIG.features.enableNarration &&
+        CONFIG.elevenLabs.apiKey &&
+        CONFIG.elevenLabs.apiKey !== 'YOUR_ELEVENLABS_API_KEY_HERE';
+}
