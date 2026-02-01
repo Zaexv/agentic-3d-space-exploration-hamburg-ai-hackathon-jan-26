@@ -70,11 +70,11 @@ export class Planet {
     }
 
     createPlanet() {
-        // Create planet geometry
+        // Create planet geometry - optimized
         const geometry = new THREE.SphereGeometry(
             this.config.radius,
-            64,
-            64
+            32, // Reduced from 64 for performance
+            32
         );
 
         // Get colors from composition
@@ -178,16 +178,21 @@ export class Planet {
             }
         }
 
-        // Create material with realistic lighting
-        // isEarth is already defined above
-
+        // Create material with realistic lighting - NEVER TRANSPARENT
         const materialOptions = {
             map: texture,
             normalMap: normalMap,
+            color: new THREE.Color(0xffffff), // White to not tint textures
             roughness: isEarth ? 0.8 : (this.config.planetType === 'iceGiant' ? 0.4 : 0.9),
             metalness: isEarth ? 0.0 : 0.1,
             emissive: emissiveMap ? new THREE.Color(0xffffff) : new THREE.Color(baseColor),
-            emissiveIntensity: (this.config.isSolar || isEarth) ? 0.3 : (emissiveMap ? 1.0 : (parseFloat(this.config.temperature) > 1000 ? 0.1 : 0.0))
+            emissiveIntensity: (this.config.isSolar || isEarth) ? 0.3 : (emissiveMap ? 1.0 : (parseFloat(this.config.temperature) > 1000 ? 0.1 : 0.0)),
+            transparent: false,
+            opacity: 1.0,
+            alphaTest: 0,
+            depthWrite: true,
+            depthTest: true,
+            side: THREE.FrontSide
         };
 
         // Add emissive map if exists
@@ -197,16 +202,8 @@ export class Planet {
 
         // Add surface map for Earth
         if (specularMap && isEarth) {
-            // earth_specular has Water = White (shiny), Land = Black (rough)
-            // In Three.js StandardMaterial, we can use this as a metalnessMap 
-            // to make water reflective like a metal (specular), 
-            // and keep land non-reflective.
             materialOptions.metalnessMap = specularMap;
             materialOptions.metalness = 1.0;
-
-            // For roughness, we'd want water to be 0 and land 1.
-            // Since the map is inverted (Water=1, Land=0), we don't use it as roughnessMap directly
-            // unless we want matte water. We'll stick to a high base roughness for land.
             materialOptions.roughness = 0.7;
         } else if (specularMap) {
             materialOptions.metalnessMap = specularMap;
@@ -218,6 +215,7 @@ export class Planet {
         const material = new THREE.MeshStandardMaterial(materialOptions);
 
         this.mesh = new THREE.Mesh(geometry, material);
+        this.mesh.renderOrder = 10; // Render planets AFTER stars
         this.mesh.castShadow = true;
         this.mesh.receiveShadow = true;
         this.mesh.rotation.z = this.config.tilt;
@@ -252,7 +250,6 @@ export class Planet {
         if (this.config.flattening) {
             this.mesh.scale.y = 1.0 - this.config.flattening;
 
-            // Atmospheric shells must also be oblate to match
             if (this.atmosphereMesh) {
                 this.atmosphereMesh.scale.y = 1.0 - this.config.flattening;
             }
@@ -279,7 +276,7 @@ export class Planet {
     createAtmosphere() {
         const atmosphereConfig = this.config.atmosphere;
         
-        // Use new multi-layer atmosphere shader
+        // Use multi-layer atmosphere shader
         this.atmosphereLayers = createAtmosphere(this.config.radius, atmosphereConfig);
         
         // Add all layers to the group
@@ -297,13 +294,16 @@ export class Planet {
             texture = this.textureLoader.load('/textures/planets/earth/earth_clouds_2048.png');
         }
         
-        // Use new cloud shader
+        // Use new cloud shader for realistic clouds
         this.cloudMesh = createCloudLayer(this.config.radius, texture);
         
-        // Adjust cloud properties for Earth
+        // Adjust cloud properties
         if (this.config.name === 'Earth' || this.config.pl_name === 'Earth') {
-            this.cloudMesh.material.uniforms.cloudOpacity.value = 0.4;
+            this.cloudMesh.material.uniforms.cloudOpacity.value = 0.5;
             this.cloudMesh.material.uniforms.cloudCoverage.value = 0.5;
+        } else {
+            this.cloudMesh.material.uniforms.cloudOpacity.value = 0.6;
+            this.cloudMesh.material.uniforms.cloudCoverage.value = 0.6;
         }
         
         this.group.add(this.cloudMesh);
@@ -375,7 +375,7 @@ export class Planet {
             this.mesh.position.x = Math.cos(this.angle) * this.config.orbitRadius;
             this.mesh.position.z = Math.sin(this.angle) * this.config.orbitRadius;
 
-            // Move atmospheric layers and clouds with planet
+            // Move atmosphere layers and clouds with planet
             this.atmosphereLayers.forEach(layer => {
                 layer.position.copy(this.mesh.position);
             });
