@@ -15,29 +15,29 @@ export class Spacecraft {
         // Start in space
         this.group.position.set(0, 0, 0);
 
-        // Constant forward speed
-        this.minSpeed = 15.0;
-        this.maxSpeed = 200000.0;
-        this.forwardSpeed = 30.0;
-        this.autopilotSpeed = 100.0;
+        // Constant forward speed (scaled for large scene)
+        this.minSpeed = 1000.0;
+        this.maxSpeed = 10000000.0; // 10 million units/frame for fast travel
+        this.forwardSpeed = 5000.0;
+        this.autopilotSpeed = 50000.0;
 
-        // Arcade flight parameters
+        // Arcade flight parameters (scaled for large scene)
         this.turnSpeed = 1.5; // Faster turns
         this.pitchSpeed = 1.2; // Faster pitch
         this.bankLimit = 0.6;
-        this.strafeFactor = 30.0; // More drift
+        this.strafeFactor = 3000.0; // Scaled for large scene
         this.autoLevelSpeed = 4.0; // Snappier auto-leveling
         this.strafeDecay = 4.0; // Snappier strafe decay
 
-        this.steeringForce = 8;
+        this.steeringForce = 8000; // Scaled for large scene
         this.velocity = new THREE.Vector3(0, 0, 0);
         this.lateralVelocity = 0; // Strafe speed component
 
-        // Autopilot State
+        // Autopilot State (scaled for large scene)
         this.autopilot = {
             enabled: false,
             target: null,
-            minDistance: 30
+            minDistance: 300000 // Stop 300k units from target
         };
 
         // Animation

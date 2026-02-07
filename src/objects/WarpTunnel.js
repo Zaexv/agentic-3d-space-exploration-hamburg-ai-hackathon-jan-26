@@ -16,9 +16,8 @@ export class WarpTunnel {
     }
 
     createTunnel() {
-        // Huge cylinder that surrounds the camera
-        // Radius: 50, Height: 1000, Segments: 32, OpenEnded
-        const geometry = new THREE.CylinderGeometry(50, 50, 1000, 32, 1, true);
+        // Simplified tunnel geometry - subtle effect only
+        const geometry = new THREE.CylinderGeometry(3000, 3000, 30000, 32, 1, true);
 
         // Rotate to align with Z axis (Three.js cylinder is Y-up)
         geometry.rotateX(-Math.PI / 2);
@@ -45,38 +44,34 @@ export class WarpTunnel {
                 }
 
                 void main() {
-                    // Create star streak effect
+                    // Subtle star streak effect - realistic and clean
                     
-                    // Scroll speed based on ship speed
-                    float scrollSpeed = speed * time * 5.0; // Faster scroll for streaks
+                    float scrollSpeed = speed * time * 3.0; // Gentler scroll
                     
-                    // Distort UVs to stretch stars
                     vec2 uv = vUv;
                     
-                    // Create grid for stars
-                    vec2 grid = vec2(uv.x * 40.0, (uv.y - scrollSpeed) * 10.0);
+                    // Single layer of sparse stars
+                    vec2 grid = vec2(uv.x * 30.0, (uv.y - scrollSpeed) * 8.0);
                     vec2 ipos = floor(grid);
-                    vec2 fpos = fract(grid);
                     
-                    // Random brightness for each cell
                     float rnd = random(ipos);
                     
-                    // Threshold to keep only few "stars"
-                    float star = smoothstep(0.9, 1.0, rnd);
+                    // Sparse stars - realistic space
+                    float star = smoothstep(0.95, 1.0, rnd); // Very sparse (was 0.85)
                     
-                    // Fade out at ends of cylinder
+                    // Gentle fade
                     float fade = smoothstep(0.0, 0.3, uv.y) * smoothstep(1.0, 0.7, uv.y);
                     
-                    // Final intensity
-                    float intensity = star * fade * opacity;
+                    // Simple white color - no blue tint
+                    float intensity = star * fade * opacity * 0.6; // Dimmer overall
                     
                     gl_FragColor = vec4(color, intensity);
                 }
             `,
             transparent: true,
-            side: THREE.BackSide, // Render inside
-            depthWrite: false, // Don't block other transparent objects
-            blending: THREE.AdditiveBlending // Glow effect
+            side: THREE.BackSide,
+            depthWrite: false,
+            blending: THREE.AdditiveBlending
         });
 
         this.mesh = new THREE.Mesh(geometry, material);
@@ -84,14 +79,14 @@ export class WarpTunnel {
     }
 
     update(deltaTime, currentSpeed, cameraPosition, cameraQuaternion) {
-        // Activation threshold
-        const threshold = 2000.0;
+        // Higher activation threshold - only at very high speeds
+        const threshold = 500000; // 500k units/frame (was 100k)
 
-        // Calculate targeted opacity based on speed
+        // Calculate targeted opacity - subtle effect
         let targetOpacity = 0;
         if (currentSpeed > threshold) {
-            // Fade in from 0 to 1 as speed goes from 2000 to ~20000
-            targetOpacity = Math.min(0.8, (currentSpeed - threshold) / 5000.0);
+            // Very subtle fade in - max 0.4 opacity
+            targetOpacity = Math.min(0.4, (currentSpeed - threshold) / 500000);
         }
 
         // Smoothly interpolate opacity
@@ -104,7 +99,7 @@ export class WarpTunnel {
 
             // Update shader uniforms
             this.uniforms.time.value += deltaTime;
-            this.uniforms.speed.value = currentSpeed / 10000.0; // Normalize speed for shader
+            this.uniforms.speed.value = currentSpeed / 2000000; // Slower movement (was 1000000)
 
             // Keep tunnel centered and aligned with camera
             this.group.position.copy(cameraPosition);

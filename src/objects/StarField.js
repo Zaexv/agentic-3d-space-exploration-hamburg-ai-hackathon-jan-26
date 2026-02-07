@@ -52,8 +52,8 @@ export class StarField {
 
             colors.push(color.r, color.g, color.b);
 
-            // Random sizes
-            sizes.push(Math.random() * 2.5);
+            // Random sizes - increased for larger scene scale
+            sizes.push(Math.random() * 50 + 50); // 50-100 (was 0-2.5)
         }
 
         geometry.setAttribute(
@@ -71,12 +71,12 @@ export class StarField {
 
         // Create points material with circular texture
         const material = new THREE.PointsMaterial({
-            size: 1.5,
+            size: 3000, // Reduced from 5000 for subtler background
             map: generateStarTexture(64),
             vertexColors: true,
             sizeAttenuation: true,
             transparent: true,
-            opacity: 0.9,
+            opacity: 0.6, // Dimmer (was 0.9)
             alphaTest: 0.05,
             blending: THREE.NormalBlending,
             depthWrite: false, // Stars don't write depth (so planets always occlude them)
@@ -85,6 +85,7 @@ export class StarField {
 
         this.mesh = new THREE.Points(geometry, material);
         this.mesh.renderOrder = -999; // Render stars FIRST (background layer)
+        this.mesh.frustumCulled = false; // Always render (skybox effect)
     }
 
     dispose() {

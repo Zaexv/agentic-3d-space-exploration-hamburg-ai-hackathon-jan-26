@@ -493,24 +493,26 @@ class App {
 
     async createEnvironment() {
         console.log('  ✨ Creating star field...');
-        // Create static massive star field (fixes "stars following camera" artifact)
-        this.starField = new StarField(15000, 2000000);
+        // Create massive star field (follows spacecraft like skybox)
+        // Increased radius to work with new billion-scale scene
+        this.starField = new StarField(15000, 50000000); // 50M radius (visible at all scales)
         this.sceneManager.add(this.starField.mesh);
 
         // Create Galaxy Field (background details)
-        this.galaxyField = new GalaxyField(5000000, 500);
+        // Increased radius for better visibility at extreme distances
+        this.galaxyField = new GalaxyField(100000000, 500); // 100M radius
         this.sceneManager.add(this.galaxyField.group);
 
         // Warp Tunnel Effect
         this.warpTunnel = new WarpTunnel();
         this.sceneManager.add(this.warpTunnel.group);
 
-        // SpaceDust
-        this.spaceDust = new SpaceDust(2000, 400);
+        // SpaceDust - subtle motion indicator
+        this.spaceDust = new SpaceDust(2000, 50000);
         this.sceneManager.add(this.spaceDust.mesh);
 
-        // Random Space Debris (Asteroids)
-        this.spaceDebris = new SpaceDebris(this.sceneManager.scene, 40, 4000);
+        // REMOVED: SpaceDebris - user wants clean space without asteroids
+        // this.spaceDebris = new SpaceDebris(this.sceneManager.scene, 40, 500000);
 
         console.log('  ✓ Environment created');
     }
@@ -880,6 +882,21 @@ class App {
             );
         }
 
+        // Update background fields to follow spacecraft (skybox effect)
+        if (this.spacecraft) {
+            const spacecraftPos = this.spacecraft.group.position;
+            
+            // StarField follows spacecraft (distant background)
+            if (this.starField && this.starField.mesh) {
+                this.starField.mesh.position.copy(spacecraftPos);
+            }
+            
+            // GalaxyField follows spacecraft (very distant background)
+            if (this.galaxyField && this.galaxyField.group) {
+                this.galaxyField.group.position.copy(spacecraftPos);
+            }
+        }
+
         // Update SpaceDust
         if (this.spaceDust && this.spacecraft) {
             const speed = this.spacecraft.getSpeed();
@@ -894,10 +911,10 @@ class App {
             this.nebulaField.update(deltaTime, this.spacecraft.group.position);
         }
 
-        // Update SpaceDebris
-        if (this.spaceDebris && this.spacecraft) {
-            this.spaceDebris.update(deltaTime, this.spacecraft.group.position);
-        }
+        // REMOVED: SpaceDebris update - asteroids disabled for clean space
+        // if (this.spaceDebris && this.spacecraft) {
+        //     this.spaceDebris.update(deltaTime, this.spacecraft.group.position);
+        // }
 
         // Update targeting square animation
         if (this.targetingSquare) {
@@ -924,34 +941,47 @@ class App {
 
     /**
      * Teleport spacecraft to planet location with visual effect
-     * Adjusted for x10000 scaled system
+     * UPDATED: Now matches ExoplanetField scale system (1B sceneScale + position boosts)
      */
     teleportToPlanet(planet) {
         if (!planet) return;
 
         console.log(`🚀 Teleporting to ${planet.pl_name}`);
+        console.log('   hostname:', planet.hostname);
 
         let targetPosition;
 
-        // IMPORTANTE: Los planetas ahora están escalados x10000
-        const globalScale = 10000;
+        // CRITICAL: MUST match ExoplanetField.js scaling
+        const sceneScale = 1000000000; // 1 light-year = 1 billion scene units
+        
+        // Different radius scales for solar system vs exoplanets
+        const earthRadiusScale_Solar = 50000; // Solar system: 50k units per Earth radius
+        const earthRadiusScale_Exo = 500;     // Exoplanets: 500 units per Earth radius (100x smaller to avoid overlap)
 
-        // Solar system planets use position field
+        // Check if solar system planet
         const isSolarPlanet = planet.hostname === 'Sun';
-        if (isSolarPlanet && planet.position) {
+        const positionBoost = isSolarPlanet ? 1000 : 100; // Solar 1000x, Exoplanets 100x
+        const earthRadiusScale = isSolarPlanet ? earthRadiusScale_Solar : earthRadiusScale_Exo;
+        
+        console.log(`   isSolar: ${isSolarPlanet}, positionBoost: ${positionBoost}x, radiusScale: ${earthRadiusScale}`);
+
+        // Both solar and exoplanets now use coordinates_3d
+        if (planet.characteristics?.coordinates_3d) {
+            const coords = planet.characteristics.coordinates_3d;
+            console.log('   coordinates_3d:', coords);
             targetPosition = new THREE.Vector3(
-                planet.position.x * 10 * globalScale, // sceneScale * globalScale
-                planet.position.y * 10 * globalScale,
-                planet.position.z * 10 * globalScale
+                coords.x_light_years * sceneScale * positionBoost,
+                coords.y_light_years * sceneScale * positionBoost,
+                coords.z_light_years * sceneScale * positionBoost
             );
         }
-        // Exoplanets use coordinates_3d
-        else if (planet.characteristics?.coordinates_3d) {
-            const coords = planet.characteristics.coordinates_3d;
+        // Fallback to position field (old format)
+        else if (planet.position) {
+            console.warn('   Using fallback position field (old format)');
             targetPosition = new THREE.Vector3(
-                coords.x_light_years * 10 * globalScale, // sceneScale * globalScale
-                coords.y_light_years * 10 * globalScale,
-                coords.z_light_years * 10 * globalScale
+                planet.position.x * sceneScale * positionBoost,
+                planet.position.y * sceneScale * positionBoost,
+                planet.position.z * sceneScale * positionBoost
             );
         }
 
@@ -960,14 +990,28 @@ class App {
             return;
         }
 
+        console.log(`   target position: (${targetPosition.x.toFixed(0)}, ${targetPosition.y.toFixed(0)}, ${targetPosition.z.toFixed(0)})`);
+
         // Create flash effect overlay
         this.createTeleportFlash();
 
-        // Calculate approach position - cerca del planeta pero no dentro
-        const planetRadius = (planet.pl_rade || 1.0) * 0.5 * globalScale; // Radio del planeta escalado
-        const offset = planetRadius * 1.5; // 1.5x el radio -> Closer arrival per user request
-        const direction = targetPosition.clone().normalize();
-        const approachPosition = targetPosition.clone().sub(direction.multiplyScalar(offset));
+        // Calculate approach position - dynamic offset based on planet size
+        const planetRadius = (planet.pl_rade || 1.0) * earthRadiusScale;
+        const offset = Math.max(planetRadius * 20, 500000); // 20x planet radius, min 500k units
+        
+        const distanceFromOrigin = targetPosition.length();
+        let approachPosition;
+
+        if (distanceFromOrigin < 100000) {
+            // Planet very close to origin (like Earth) - use fixed offset
+            approachPosition = targetPosition.clone().add(new THREE.Vector3(0, offset * 0.3, offset));
+            console.log('   Near origin - fixed offset approach');
+        } else {
+            // Planet far from origin - approach from outside
+            const direction = targetPosition.clone().normalize();
+            approachPosition = targetPosition.clone().add(direction.multiplyScalar(offset));
+            console.log('   Far from origin - directional approach');
+        }
 
         // Perform teleport during flash peak (200ms)
         setTimeout(() => {
