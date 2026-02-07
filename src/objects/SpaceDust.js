@@ -10,7 +10,7 @@ export class SpaceDust {
     constructor(count = 2000, range = 400) {
         this.count = count;
         this.range = range;
-        this.speedThreshold = 200; // Speed at which to switch to warp effect
+        this.speedThreshold = 100000; // Start subtle effect at 100k speed
         this.isWarpMode = false;
         this.currentSpeed = 0;
         this.createDust();
@@ -21,29 +21,27 @@ export class SpaceDust {
         const positions = new Float32Array(this.count * 3);
         const sizes = new Float32Array(this.count);
 
-        // We'll use a local coordinate system relative to the camera for individual particles
-        // but offset them based on world position to simulate movement
-
+        // Subtle particles distributed in space
         for (let i = 0; i < this.count; i++) {
             positions[i * 3] = (Math.random() - 0.5) * this.range;
             positions[i * 3 + 1] = (Math.random() - 0.5) * this.range;
             positions[i * 3 + 2] = (Math.random() - 0.5) * this.range;
-            sizes[i] = Math.random() * 2;
+            sizes[i] = Math.random() * 50 + 25; // Smaller, more subtle (25-75)
         }
 
         geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
         geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
 
         const material = new THREE.PointsMaterial({
-            color: 0xffffff,
-            size: 0.8,
+            color: 0xaaaaaa, // Dimmer gray instead of white
+            size: 50, // Smaller base size
             map: generateStarTexture(32),
             transparent: true,
-            opacity: 0.6,
+            opacity: 0.3, // Much more subtle (was 0.7)
             alphaTest: 0.05,
             blending: THREE.AdditiveBlending,
             sizeAttenuation: true,
-            depthWrite: false // Don't write depth, semitransparent
+            depthWrite: false
         });
 
         this.mesh = new THREE.Points(geometry, material);
@@ -125,28 +123,38 @@ export class SpaceDust {
             positions[idx + 2] = spacecraftPosition.z + z;
         }
 
-        this.baseMaterial.opacity = 0.6;
-        this.baseMaterial.size = 0.8;
+        this.baseMaterial.opacity = 0.3; // Subtle
+        this.baseMaterial.size = 50;
         this.baseMaterial.sizeAttenuation = true;
     }
 
     updateWarpMode(positions, spacecraftPosition, direction, speed) {
         const halfRange = this.range / 2;
 
-        // In warp mode, we stretch them and make them stream
-        // This is purely visual, we don't care about "world fixed" accuracy as much
+        // Subtle warp effect - just slight increase in visibility and size
+        const speedFactor = Math.min((speed - this.speedThreshold) / 500000, 3.0); // Gentler scaling
 
-        const speedFactor = Math.min((speed - this.speedThreshold) / 500, 5.0);
+        // Subtle visual enhancement at high speed
+        this.baseMaterial.opacity = Math.min(0.3 + speedFactor * 0.1, 0.5); // Max 0.5 opacity (was 0.95)
+        this.baseMaterial.size = 50 + speedFactor * 30; // Slight size increase (was 100+200)
+        this.baseMaterial.sizeAttenuation = true; // Keep perspective
 
-        // Update opacity/size
-        this.baseMaterial.opacity = Math.min(0.4 + speedFactor * 0.1, 0.8);
-        this.baseMaterial.size = 0.8 + speedFactor * 0.5;
-        this.baseMaterial.sizeAttenuation = false; // Make them look like streaks? No, keep it true but bigger.
+        // Simple wrap-around positioning without extreme streaming effects
+        for (let i = 0; i < this.count; i++) {
+            const idx = i * 3;
 
-        // Reuse normal mode logic for positioning, but maybe stretch them?
-        // Stretching points requires shaders or lines. Points are always squares/circles.
-        // We'll stick to just fast moving particles for now.
+            let x = this.initialPositions[idx] - spacecraftPosition.x;
+            let y = this.initialPositions[idx + 1] - spacecraftPosition.y;
+            let z = this.initialPositions[idx + 2] - spacecraftPosition.z;
 
-        this.updateNormalMode(positions, spacecraftPosition);
+            // Wrap around
+            x = ((x + halfRange) % this.range + this.range) % this.range - halfRange;
+            y = ((y + halfRange) % this.range + this.range) % this.range - halfRange;
+            z = ((z + halfRange) % this.range + this.range) % this.range - halfRange;
+
+            positions[idx] = spacecraftPosition.x + x;
+            positions[idx + 1] = spacecraftPosition.y + y;
+            positions[idx + 2] = spacecraftPosition.z + z;
+        }
     }
 }

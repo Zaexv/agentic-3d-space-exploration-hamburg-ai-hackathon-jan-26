@@ -23,11 +23,18 @@ export class ExoplanetField {
         this.loaded = false;
         this.renderedPlanets = new Set(); // Track rendered planet IDs
 
-        // Visual settings - UNIFIED LINEAR SCALE (1:1 ratio, no boosts)
-        this.sceneScale = 10; // 1 light year = 10 scene units (ALL planets)
-        this.earthRadiusScale = 0.5; // 1 Earth radius = 0.5 scene units (ALL planets, no exceptions)
+        // Visual settings - Scaled up for better visibility
+        // Positions use real astronomical distances (1 billion scale)
+        this.sceneScale = 1000000000; // 1 light year = 1 billion scene units
+        
+        // Different radius scales for solar system vs exoplanets
+        // Solar system: 1000x position boost, needs larger planets
+        // Exoplanets: 100x position boost, needs smaller planets (to avoid overlap)
+        this.earthRadiusScale_Solar = 50000; // 1 Earth radius = 50k units (solar system)
+        this.earthRadiusScale_Exo = 500;     // 1 Earth radius = 500 units (exoplanets, 100x smaller)
 
         // For compatibility with old code
+        this.earthRadiusScale = this.earthRadiusScale_Solar; // Default to solar
         this.mesh = this.meshGroup;
 
         // NEW: Texture loader for real photographic textures (Earth/Solar)
@@ -72,9 +79,8 @@ export class ExoplanetField {
         // Load in background
         this.loadClustersProgressively(otherClusters);
 
-        // APLICAR ESCALA x10000 DESPUÉS DE RENDERIZAR
-        console.log('🔧 Applying x10000 scale to all planets...');
-        this.meshGroup.scale.set(10000, 10000, 10000);
+        // NO SCALE MULTIPLIER - positions are already calculated correctly
+        console.log('✓ Planets loaded with real astronomical scale');
     }
 
     /**
@@ -152,8 +158,11 @@ export class ExoplanetField {
                 );
                 const radiusInEarthRadii = planet.pl_rade || 1.0;
 
-                // TRUE 1:1 SCALE: No boosts, no exceptions
-                const radius = radiusInEarthRadii * this.earthRadiusScale;
+                // Use different radius scales for solar system vs exoplanets
+                // This prevents overlap of planets in the same star system
+                const isSolar = planet.hostname === 'Sun';
+                const earthRadiusScale = isSolar ? this.earthRadiusScale_Solar : this.earthRadiusScale_Exo;
+                const radius = radiusInEarthRadii * earthRadiusScale;
 
                 let tier = 3;
                 if (distLY < 25) tier = 1;
@@ -369,11 +378,18 @@ export class ExoplanetField {
                 }
 
                 // UNIFIED POSITIONING: All planets use coordinates_3d (light-years → scene units)
+                // Apply position boost to bring planets into visible range:
+                // - Solar system: 1000x boost (spread out locally)
+                // - Exoplanets: 100x boost (far but within camera range)
+                const positionBoost = isSolar ? 1000 : 100;
+                
                 mesh.position.set(
-                    coords.x_light_years * this.sceneScale,
-                    coords.y_light_years * this.sceneScale,
-                    coords.z_light_years * this.sceneScale
+                    coords.x_light_years * this.sceneScale * positionBoost,
+                    coords.y_light_years * this.sceneScale * positionBoost,
+                    coords.z_light_years * this.sceneScale * positionBoost
                 );
+
+                console.log(`${planet.pl_name}: pos=(${mesh.position.x.toFixed(1)}, ${mesh.position.y.toFixed(1)}, ${mesh.position.z.toFixed(1)}), radius=${radius.toFixed(1)}, boost=${positionBoost}x`);
 
                 mesh.userData.planetData = planet;
                 mesh.userData.planet = planet; // Compatibility

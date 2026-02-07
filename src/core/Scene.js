@@ -12,24 +12,23 @@ export class SceneManager {
     }
 
     setupScene() {
-        // Set background to dark space
-        this.scene.background = new THREE.Color(0x000011);
+        // Set background to pure deep space black
+        this.scene.background = new THREE.Color(0x000000); // Pure black (was 0x000011)
 
-        // Add exponential fog for depth (ajustado para escala x10000)
-        // DISABLED - fog was causing transparency issues
+        // Fog disabled for maximum visibility of distant planets
         // this.scene.fog = new THREE.FogExp2(0x000011, 0.00000002);
 
-        // Add strong ambient light for equal illumination from all sides
-        const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
+        // Reduced ambient light for more realistic space
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.8); // Dimmer (was 1.5)
         this.scene.add(ambientLight);
 
-        // Add Hemisphere light for better 3D depth (simulates galactic glow)
-        const hemiLight = new THREE.HemisphereLight(0x445566, 0x222222, 0.8);
+        // Dimmed hemisphere light
+        const hemiLight = new THREE.HemisphereLight(0x445566, 0x222222, 0.4); // Dimmer (was 0.8)
         this.scene.add(hemiLight);
 
-        // Add directional light (simulating local star/sun) - Reduced intensity since we have strong ambient
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
-        directionalLight.position.set(2000, 500, 2000); // Placed further away
+        // Reduced directional light
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.3); // Dimmer (was 0.5)
+        directionalLight.position.set(2000, 500, 2000);
         directionalLight.castShadow = true;
 
         // Configure shadow properties for better quality

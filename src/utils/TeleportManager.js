@@ -7,7 +7,7 @@ export class TeleportManager {
     constructor(spacecraft, camera) {
         this.spacecraft = spacecraft;
         this.camera = camera;
-        this.teleportOffset = 100; // Distance from planet to position spacecraft
+        this.teleportOffset = 1000000; // Distance from planet (scaled 10,000x)
     }
 
     /**
@@ -23,35 +23,34 @@ export class TeleportManager {
         
         // Check if this is a solar system planet
         const isSolarPlanet = planetData.hostname === 'Sun';
+        console.log(`🌟 Planet: ${planetName}, hostname: ${planetData.hostname}, isSolar: ${isSolarPlanet}`);
+        
+        // Calculate dynamic offset based on planet size for optimal viewing
+        // Use different scales for solar system vs exoplanets (matches ExoplanetField)
+        const earthRadiusScale = isSolarPlanet ? 50000 : 500; // Solar: 50k, Exo: 500
+        const planetRadius = (planetData.pl_rade || 1.0) * earthRadiusScale;
+        const dynamicOffset = Math.max(planetRadius * 20, 500000); // 20x planet radius for good view, min 500k units
+        console.log(`📏 Planet radius: ${planetRadius.toFixed(0)}, Using offset: ${dynamicOffset.toFixed(0)} units`);
 
-        // Case 1: Solar system planet with position field (in AU)
-        if (isSolarPlanet && planetData.position) {
-            console.log('📍 Solar system planet - using position field:', planetData.position);
-            // Solar system planets use position field scaled by 200 (same as ExoplanetField)
-            targetPosition = new THREE.Vector3(
-                planetData.position.x * 200,
-                planetData.position.y * 200,
-                planetData.position.z * 200
-            );
-            console.log('✓ Calculated solar system target position:', targetPosition);
-        }
-        // Case 2: Exoplanet with coordinates_3d
-        else if (planetData.characteristics?.coordinates_3d) {
+        // Case 1: Check for coordinates_3d first (works for both solar and exoplanets)
+        if (planetData.characteristics?.coordinates_3d) {
             const coords = planetData.characteristics.coordinates_3d;
-            console.log('📍 Exoplanet - found coordinates_3d:', coords);
+            console.log('📍 Using coordinates_3d:', coords);
             if (coords.x_light_years !== null && coords.x_light_years !== undefined) {
-                const sceneScale = 10; // MUST match ExoplanetField.sceneScale
+                const sceneScale = 1000000000; // MUST match ExoplanetField.sceneScale
+                // Match ExoplanetField boost: solar 1000x, exoplanets 100x
+                const positionBoost = isSolarPlanet ? 1000 : 100;
                 targetPosition = new THREE.Vector3(
-                    coords.x_light_years * sceneScale,
-                    coords.y_light_years * sceneScale,
-                    coords.z_light_years * sceneScale
+                    coords.x_light_years * sceneScale * positionBoost,
+                    coords.y_light_years * sceneScale * positionBoost,
+                    coords.z_light_years * sceneScale * positionBoost
                 );
-                console.log('✓ Calculated exoplanet target position:', targetPosition);
+                console.log('✓ Calculated target position:', targetPosition, `(boost: ${positionBoost}x)`);
             }
         }
-        // Case 3: Generic position field (fallback)
+        // Case 2: Fallback to position field (old format)
         else if (planetData.position) {
-            console.log('📍 Generic position field:', planetData.position);
+            console.log('📍 Fallback - using position field:', planetData.position);
             targetPosition = planetData.position.clone ? planetData.position.clone() : new THREE.Vector3(planetData.position.x, planetData.position.y, planetData.position.z);
             console.log('✓ Using position as-is:', targetPosition);
         }
@@ -62,7 +61,7 @@ export class TeleportManager {
             return false;
         }
 
-        return this.executeTeleport(targetPosition, planetName);
+        return this.executeTeleport(targetPosition, planetName, dynamicOffset);
     }
 
     /**
@@ -88,15 +87,30 @@ export class TeleportManager {
     /**
      * Internal teleport execution logic
      */
-    executeTeleport(targetPosition, planetName) {
+    executeTeleport(targetPosition, planetName, customOffset = null) {
+        const offset = customOffset || this.teleportOffset;
         console.log(`Teleporting to ${planetName} at ${targetPosition.x}, ${targetPosition.y}, ${targetPosition.z}`);
+        console.log(`Using offset: ${offset} units`);
 
         // Calculate offset position (approach from a distance)
-        // Direction FROM origin TO target
-        const directionFromOrigin = targetPosition.clone().normalize();
-        const approachPosition = targetPosition.clone().sub(
-            directionFromOrigin.multiplyScalar(this.teleportOffset)
-        );
+        const distanceFromOrigin = targetPosition.length();
+        let approachPosition;
+
+        if (distanceFromOrigin < 100000) {
+            // Planet is very close to origin (like Earth) - use fixed offset
+            // Place camera offset distance away on Z axis, slightly above
+            approachPosition = targetPosition.clone().add(new THREE.Vector3(0, offset * 0.3, offset));
+            console.log('Planet near origin - using fixed offset approach');
+        } else {
+            // Planet is far from origin - approach from direction AWAY from origin
+            // This ensures we approach from outside the planet, not from inside
+            const directionFromOrigin = targetPosition.clone().normalize();
+            // Add offset in the direction FROM origin TO planet (away from origin)
+            approachPosition = targetPosition.clone().add(
+                directionFromOrigin.multiplyScalar(offset)
+            );
+            console.log('Planet far from origin - approaching from outer side');
+        }
 
         console.log('Approach position:', approachPosition);
 

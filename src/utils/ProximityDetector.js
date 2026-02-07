@@ -11,7 +11,9 @@ export class ProximityDetector {
         this.lastClosestPlanet = null;
         this.updateThrottle = 500; // ms between updates
         this.lastUpdateTime = 0;
-        this.searchRadius = 5000000; // Search within 5M units (scaled)
+        // Increased search radius for new billion-scale scene
+        // Solar system spans ~60M units, search up to 100M
+        this.searchRadius = 100000000; // 100M units (was 5M)
     }
 
     /**
@@ -40,35 +42,36 @@ export class ProximityDetector {
         let closestWorldPos = null;
         let closestMesh = null;
 
-        const globalScale = 10000;
+        // UPDATED: Use new billion-scale system matching ExoplanetField.js
+        const sceneScale = 1000000000; // 1 light-year = 1 billion scene units
 
         for (const planet of allPlanets) {
             // Get planet position in world coordinates
             let planetWorldPos;
             
-            // TRY BOTH COORDINATE SYSTEMS with logging
+            // Check if solar system planet
             const isSolarPlanet = planet.hostname === 'Sun';
+            const positionBoost = isSolarPlanet ? 1000 : 100; // Match ExoplanetField
             
             if (planet.characteristics?.coordinates_3d) {
-                // NEW UNIFIED SYSTEM: All enriched planets have this
+                // UNIFIED SYSTEM: All planets use coordinates_3d
                 const coords = planet.characteristics.coordinates_3d;
                 planetWorldPos = new THREE.Vector3(
-                    coords.x_light_years * 10 * globalScale,
-                    coords.y_light_years * 10 * globalScale,
-                    coords.z_light_years * 10 * globalScale
+                    coords.x_light_years * sceneScale * positionBoost,
+                    coords.y_light_years * sceneScale * positionBoost,
+                    coords.z_light_years * sceneScale * positionBoost
                 );
-                console.log(`📍 ${planet.pl_name} using coordinates_3d:`, coords.x_light_years, coords.y_light_years, coords.z_light_years);
-            } else if (isSolarPlanet && planet.position) {
-                // FALLBACK FOR SOLAR SYSTEM: Old position system
+            } else if (planet.position) {
+                // FALLBACK: Old position system (should not happen)
+                console.warn(`⚠️ ${planet.pl_name} using fallback position field`);
                 planetWorldPos = new THREE.Vector3(
-                    planet.position.x * 10 * globalScale,
-                    planet.position.y * 10 * globalScale,
-                    planet.position.z * 10 * globalScale
+                    planet.position.x * sceneScale * positionBoost,
+                    planet.position.y * sceneScale * positionBoost,
+                    planet.position.z * sceneScale * positionBoost
                 );
-                console.log(`📍 ${planet.pl_name} using position (fallback):`, planet.position.x, planet.position.y, planet.position.z);
             } else {
                 // No valid coordinates at all
-                console.warn('⚠️ Planet missing both coordinates_3d AND position:', planet.pl_name);
+                console.warn('⚠️ Planet missing coordinates:', planet.pl_name);
                 continue;
             }
 
@@ -76,6 +79,9 @@ export class ProximityDetector {
 
             // Only consider planets within search radius
             if (distance < this.searchRadius && distance < closestDistance) {
+                closestDistance = distance;
+                closestPlanet = planet;
+                closestWorldPos = planetWorldPos;
                 closestDistance = distance;
                 closestPlanet = planet;
                 closestWorldPos = planetWorldPos;
@@ -94,12 +100,6 @@ export class ProximityDetector {
                             }
                         }
                     });
-                    
-                    if (foundMesh) {
-                        console.log(`✅ Found mesh for ${planet.pl_name}`);
-                    } else {
-                        console.warn(`❌ Mesh NOT found for ${planet.pl_name}`);
-                    }
                 }
                 
                 closestMesh = foundMesh;
@@ -107,7 +107,7 @@ export class ProximityDetector {
         }
 
         if (closestPlanet) {
-            console.log(`🎯 Closest planet: ${closestPlanet.pl_name} (${(closestDistance / 10000).toFixed(2)} scaled units) - hasMesh: ${!!closestMesh}`);
+            console.log(`🎯 Closest planet: ${closestPlanet.pl_name} at ${(closestDistance / 1000000).toFixed(2)}M units - hasMesh: ${!!closestMesh}`);
             
             this.lastClosestPlanet = {
                 planet: closestPlanet,

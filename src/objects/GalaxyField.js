@@ -11,6 +11,7 @@ export class GalaxyField {
         this.count = count;
         this.group = new THREE.Group();
         this.group.name = 'GalaxyField';
+        this.group.frustumCulled = false; // Always render (skybox effect)
         this.createGalaxies();
     }
 
@@ -39,7 +40,7 @@ export class GalaxyField {
                 map: texture,
                 color: color,
                 transparent: true,
-                opacity: 0.6 + Math.random() * 0.4, // Varies
+                opacity: 0.3 + Math.random() * 0.3, // Dimmer (was 0.6-1.0)
                 blending: THREE.AdditiveBlending,
                 depthWrite: false // Don't occlude stars
             });
@@ -54,9 +55,9 @@ export class GalaxyField {
 
             sprite.position.setFromSphericalCoords(r, phi, theta);
 
-            // Scale sprites according to distance so they are visible but not huge
-            // Size should be massive in world units
-            const scale = (20000 + Math.random() * 30000);
+            // Scale sprites according to distance and new scene scale
+            // Increased for billion-scale scene (radius now 100M vs old 5M = 20x increase)
+            const scale = (400000 + Math.random() * 600000); // 400k-1M (was 20k-50k)
             sprite.scale.set(scale, scale, 1);
 
             // Random rotation (Sprites always face camera, but we can rotate the texture)

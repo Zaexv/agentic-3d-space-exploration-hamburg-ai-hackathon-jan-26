@@ -2,13 +2,13 @@
   {
     "pl_name": "Mercury",
     "hostname": "Sun",
-    "sy_dist": 2.971824e-06,
-    "pl_orbper": 87.97,
+    "sy_dist": 4.848e-06,
+    "pl_orbper": 87.969,
     "pl_orbsmax": 0.387,
     "pl_orbeccen": 0.2056,
     "pl_orbincl": 7.005,
     "pl_rade": 0.3829,
-    "pl_masse": 0.055,
+    "pl_masse": 0.0553,
     "pl_eqt": 440,
     "discoverymethod": "Known",
     "disc_year": 0,
@@ -23,65 +23,44 @@
       "parsecs": 1.88e-06
     },
     "characteristics": {
+      "habitability_percent": 0,
+      "toxicity_percent": 100,
       "radius_position": "Sub-Earth",
       "atmosphere_type": "None (Exosphere)",
       "principal_material": "Rocky (Iron/Silicates)",
-      "toxicity_percent": 100,
-      "habitability_percent": 0,
-      "distance_to_earth_ly": 9.69e-06,
+      "orbit_type": "Circular - Hot Zone",
       "satellites": {
         "has_satellites": false,
-        "count": 0,
-        "type": "Known"
+        "count": 0
       },
-      "orbit_type": "Circular - Hot Zone",
       "coordinates_3d": {
-        "x_parsecs": null,
-        "y_parsecs": null,
-        "z_parsecs": null,
-        "x_light_years": null,
-        "y_light_years": null,
-        "z_light_years": null,
-        "system": "Unknown",
-        "note": "Coordinates unavailable"
+        "x_parsecs": -2.9718e-06,
+        "y_parsecs": 0.0,
+        "z_parsecs": 2.279e-07,
+        "x_light_years": -9.6928e-06,
+        "y_light_years": 0.0,
+        "z_light_years": 7.432e-07,
+        "system": "Galactic (Earth/Sun centered)",
+        "note": "Solar System coordinates converted to Earth-centered reference frame"
       },
+      "distance_to_earth_ly": 9.7212e-06,
       "icrs_coordinates": {
-        "right_ascension": {
-          "degrees": null,
-          "hours_format": null,
-          "unit": "degrees"
-        },
-        "declination": {
-          "degrees": null,
-          "dms_format": null,
-          "unit": "degrees"
-        },
         "distance": {
-          "parsecs": 0.0,
-          "light_years": 0.0,
+          "parsecs": 2.9805e-06,
+          "light_years": 9.7212e-06,
           "unit": "parsecs/light-years"
         },
-        "parallax": {
-          "value": null,
-          "unit": "milliarcseconds (mas)"
-        },
-        "proper_motion": {
-          "ra": null,
-          "dec": null,
-          "unit": "milliarcseconds/year (mas/yr)"
-        },
         "epoch": "J2000.0",
-        "reference_frame": "ICRS (International Celestial Reference System)",
-        "note": "ICRS is the current standard celestial coordinate system"
+        "reference_frame": "Geocentric (Earth centered)",
+        "note": "Solar System coordinates in Earth-centered reference frame"
       }
-    },
-    "pl_bmasse": 0.055
+    }
   },
   {
     "pl_name": "Venus",
     "hostname": "Sun",
-    "sy_dist": 1.3428960000000002e-06,
-    "pl_orbper": 224.7,
+    "sy_dist": 4.848e-06,
+    "pl_orbper": 224.701,
     "pl_orbsmax": 0.723,
     "pl_orbeccen": 0.0068,
     "pl_orbincl": 3.395,
@@ -101,65 +80,44 @@
       "parsecs": 3.516e-06
     },
     "characteristics": {
+      "habitability_percent": 0,
+      "toxicity_percent": 100,
       "radius_position": "Earth-like",
       "atmosphere_type": "CO2-N2 (Dense)",
       "principal_material": "Rocky (Silicates)",
-      "toxicity_percent": 100,
-      "habitability_percent": 0,
-      "distance_to_earth_ly": 4.38e-06,
+      "orbit_type": "Circular - Hot Zone",
       "satellites": {
         "has_satellites": false,
-        "count": 0,
-        "type": "Known"
+        "count": 0
       },
-      "orbit_type": "Circular - Hot Zone",
       "coordinates_3d": {
-        "x_parsecs": null,
-        "y_parsecs": null,
-        "z_parsecs": null,
-        "x_light_years": null,
-        "y_light_years": null,
-        "z_light_years": null,
-        "system": "Unknown",
-        "note": "Coordinates unavailable"
+        "x_parsecs": -1.3429e-06,
+        "y_parsecs": 0.0,
+        "z_parsecs": 2.085e-07,
+        "x_light_years": -4.3799e-06,
+        "y_light_years": 0.0,
+        "z_light_years": 6.799e-07,
+        "system": "Galactic (Earth/Sun centered)",
+        "note": "Solar System coordinates converted to Earth-centered reference frame"
       },
+      "distance_to_earth_ly": 4.4324e-06,
       "icrs_coordinates": {
-        "right_ascension": {
-          "degrees": null,
-          "hours_format": null,
-          "unit": "degrees"
-        },
-        "declination": {
-          "degrees": null,
-          "dms_format": null,
-          "unit": "degrees"
-        },
         "distance": {
-          "parsecs": 0.0,
-          "light_years": 0.0,
+          "parsecs": 1.359e-06,
+          "light_years": 4.4324e-06,
           "unit": "parsecs/light-years"
         },
-        "parallax": {
-          "value": null,
-          "unit": "milliarcseconds (mas)"
-        },
-        "proper_motion": {
-          "ra": null,
-          "dec": null,
-          "unit": "milliarcseconds/year (mas/yr)"
-        },
         "epoch": "J2000.0",
-        "reference_frame": "ICRS (International Celestial Reference System)",
-        "note": "ICRS is the current standard celestial coordinate system"
+        "reference_frame": "Geocentric (Earth centered)",
+        "note": "Solar System coordinates in Earth-centered reference frame"
       }
-    },
-    "pl_bmasse": 0.815
+    }
   },
   {
     "pl_name": "Earth",
     "hostname": "Sun",
-    "sy_dist": 0.0,
-    "pl_orbper": 365.26,
+    "sy_dist": 4.848e-06,
+    "pl_orbper": 365.256,
     "pl_orbsmax": 1.0,
     "pl_orbeccen": 0.0167,
     "pl_orbincl": 0.0,
@@ -173,11 +131,6 @@
       "y": 0.0,
       "z": 0.0
     },
-    "distance_from_earth": {
-      "astronomical_units": 0.0,
-      "light_years": 0.0,
-      "parsecs": 0.0
-    },
     "characteristics": {
       "radius_position": "Earth-like",
       "atmosphere_type": "N2-O2 (Breathable)",
@@ -188,55 +141,57 @@
       "satellites": {
         "has_satellites": true,
         "count": 1,
-        "type": "Known"
+        "type": "Known",
+        "names": [
+          "Moon"
+        ]
       },
       "orbit_type": "Circular - Habitable Zone",
       "coordinates_3d": {
-        "x_parsecs": null,
-        "y_parsecs": null,
-        "z_parsecs": null,
-        "x_light_years": null,
-        "y_light_years": null,
-        "z_light_years": null,
-        "system": "Unknown",
-        "note": "Coordinates unavailable"
+        "x_parsecs": 0.0,
+        "y_parsecs": 0.0,
+        "z_parsecs": 0.0,
+        "x_light_years": 0.0,
+        "y_light_years": 0.0,
+        "z_light_years": 0.0,
+        "system": "Galactic (Earth/Sun centered)",
+        "note": "Solar System coordinates converted to Earth-centered reference frame"
       },
       "icrs_coordinates": {
         "right_ascension": {
-          "degrees": null,
-          "hours_format": null,
+          "degrees": 0.0,
+          "hours_format": "00h00m00.00s",
           "unit": "degrees"
         },
         "declination": {
-          "degrees": null,
-          "dms_format": null,
+          "degrees": 0.0,
+          "dms_format": "+00d00m00.00s",
           "unit": "degrees"
         },
         "distance": {
-          "parsecs": null,
-          "light_years": null,
+          "parsecs": 0.0,
+          "light_years": 0.0,
           "unit": "parsecs/light-years"
         },
         "parallax": {
-          "value": null,
+          "value": 206264806.247,
           "unit": "milliarcseconds (mas)"
         },
         "proper_motion": {
-          "ra": null,
-          "dec": null,
+          "ra": 0.0,
+          "dec": 0.0,
           "unit": "milliarcseconds/year (mas/yr)"
         },
         "epoch": "J2000.0",
-        "reference_frame": "ICRS (International Celestial Reference System)",
-        "note": "ICRS is the current standard celestial coordinate system"
+        "reference_frame": "Geocentric (Earth centered)",
+        "note": "Solar System coordinates in Earth-centered reference frame"
       }
-    },
-    "pl_bmasse": 1.0
+    }
   },
   {
     "pl_name": "Mars",
     "hostname": "Sun",
-    "sy_dist": 2.5403520000000002e-06,
+    "sy_dist": 4.848e-06,
     "pl_orbper": 686.98,
     "pl_orbsmax": 1.524,
     "pl_orbeccen": 0.0934,
@@ -251,71 +206,69 @@
       "y": 0.0,
       "z": 0.049
     },
-    "distance_from_earth": {
-      "astronomical_units": 1.524,
-      "light_years": 2.4181e-05,
-      "parsecs": 7.414e-06
-    },
     "characteristics": {
       "radius_position": "Sub-Earth",
       "atmosphere_type": "CO2 (Thin)",
       "principal_material": "Rocky (Iron Oxides/Silicates)",
       "toxicity_percent": 60,
       "habitability_percent": 30,
-      "distance_to_earth_ly": 8.29e-06,
+      "distance_to_earth_ly": 8.3217e-06,
       "satellites": {
         "has_satellites": true,
         "count": 2,
-        "type": "Known"
+        "type": "Known",
+        "names": [
+          "Phobos",
+          "Deimos"
+        ]
       },
       "orbit_type": "Elliptical - Cold Zone",
       "coordinates_3d": {
-        "x_parsecs": null,
-        "y_parsecs": null,
-        "z_parsecs": null,
-        "x_light_years": null,
-        "y_light_years": null,
-        "z_light_years": null,
-        "system": "Unknown",
-        "note": "Coordinates unavailable"
+        "x_parsecs": 2.5404e-06,
+        "y_parsecs": 0.0,
+        "z_parsecs": 2.376e-07,
+        "x_light_years": 8.2855e-06,
+        "y_light_years": 0.0,
+        "z_light_years": 7.748e-07,
+        "system": "Galactic (Earth/Sun centered)",
+        "note": "Solar System coordinates converted to Earth-centered reference frame"
       },
       "icrs_coordinates": {
         "right_ascension": {
-          "degrees": null,
-          "hours_format": null,
+          "degrees": 0.0,
+          "hours_format": "00h00m00.00s",
           "unit": "degrees"
         },
         "declination": {
-          "degrees": null,
-          "dms_format": null,
+          "degrees": 0.0,
+          "dms_format": "+00d00m00.00s",
           "unit": "degrees"
         },
         "distance": {
-          "parsecs": 0.0,
-          "light_years": 0.0,
+          "parsecs": 2.5514e-06,
+          "light_years": 8.3217e-06,
           "unit": "parsecs/light-years"
         },
         "parallax": {
-          "value": null,
+          "value": 206264806.247,
           "unit": "milliarcseconds (mas)"
         },
         "proper_motion": {
-          "ra": null,
-          "dec": null,
+          "ra": 0.0,
+          "dec": 0.0,
           "unit": "milliarcseconds/year (mas/yr)"
         },
         "epoch": "J2000.0",
-        "reference_frame": "ICRS (International Celestial Reference System)",
-        "note": "ICRS is the current standard celestial coordinate system"
+        "reference_frame": "Geocentric (Earth centered)",
+        "note": "Solar System coordinates in Earth-centered reference frame"
       }
-    },
-    "pl_bmasse": 0.107
+    }
   },
   {
     "pl_name": "Jupiter",
     "hostname": "Sun",
-    "sy_dist": 2.0376144e-05,
-    "pl_orbper": 4332.59,
+    "sy_dist": 4.848e-06,
+    "pl_orbper": 4332.589,
     "pl_orbsmax": 5.203,
     "pl_orbeccen": 0.0484,
     "pl_orbincl": 1.303,
@@ -329,70 +282,70 @@
       "y": 0.0,
       "z": 0.118
     },
-    "distance_from_earth": {
-      "astronomical_units": 5.203,
-      "light_years": 8.2526e-05,
-      "parsecs": 2.5302e-05
-    },
     "characteristics": {
       "radius_position": "Jupiter-like",
-      "atmosphere_type": "Hydrogen-Helium (Gas Giant)",
-      "principal_material": "Gaseous (H/He)",
+      "atmosphere_type": "Hydrogen-Helium",
+      "principal_material": "Gas (H/He)",
       "toxicity_percent": 100,
       "habitability_percent": 0,
-      "distance_to_earth_ly": 6.646e-05,
+      "distance_to_earth_ly": 6.64842e-05,
       "satellites": {
         "has_satellites": true,
         "count": 95,
-        "type": "Known"
+        "type": "Known",
+        "names": [
+          "Io",
+          "Europa",
+          "Ganymede",
+          "Callisto"
+        ]
       },
       "orbit_type": "Circular - Cold Zone",
       "coordinates_3d": {
-        "x_parsecs": null,
-        "y_parsecs": null,
-        "z_parsecs": null,
-        "x_light_years": null,
-        "y_light_years": null,
-        "z_light_years": null,
-        "system": "Unknown",
-        "note": "Coordinates unavailable"
+        "x_parsecs": 2.03761e-05,
+        "y_parsecs": 0.0,
+        "z_parsecs": 5.721e-07,
+        "x_light_years": 6.6458e-05,
+        "y_light_years": 0.0,
+        "z_light_years": 1.8658e-06,
+        "system": "Galactic (Earth/Sun centered)",
+        "note": "Solar System coordinates converted to Earth-centered reference frame"
       },
       "icrs_coordinates": {
         "right_ascension": {
-          "degrees": null,
-          "hours_format": null,
+          "degrees": 0.0,
+          "hours_format": "00h00m00.00s",
           "unit": "degrees"
         },
         "declination": {
-          "degrees": null,
-          "dms_format": null,
+          "degrees": 0.0,
+          "dms_format": "+00d00m00.00s",
           "unit": "degrees"
         },
         "distance": {
-          "parsecs": 0.0,
-          "light_years": 0.0001,
+          "parsecs": 2.03842e-05,
+          "light_years": 6.64842e-05,
           "unit": "parsecs/light-years"
         },
         "parallax": {
-          "value": null,
+          "value": 206264806.247,
           "unit": "milliarcseconds (mas)"
         },
         "proper_motion": {
-          "ra": null,
-          "dec": null,
+          "ra": 0.0,
+          "dec": 0.0,
           "unit": "milliarcseconds/year (mas/yr)"
         },
         "epoch": "J2000.0",
-        "reference_frame": "ICRS (International Celestial Reference System)",
-        "note": "ICRS is the current standard celestial coordinate system"
+        "reference_frame": "Geocentric (Earth centered)",
+        "note": "Solar System coordinates in Earth-centered reference frame"
       }
-    },
-    "pl_bmasse": 317.8
+    }
   },
   {
     "pl_name": "Saturn",
     "hostname": "Sun",
-    "sy_dist": 4.1387376000000004e-05,
+    "sy_dist": 4.848e-06,
     "pl_orbper": 10759.22,
     "pl_orbsmax": 9.537,
     "pl_orbeccen": 0.0542,
@@ -407,70 +360,70 @@
       "y": 0.0,
       "z": 0.413
     },
-    "distance_from_earth": {
-      "astronomical_units": 9.537,
-      "light_years": 0.000151287,
-      "parsecs": 4.6385e-05
-    },
     "characteristics": {
-      "radius_position": "Neptune-like",
-      "atmosphere_type": "Hydrogen-Helium (Gas Giant)",
-      "principal_material": "Gaseous (H/He)",
+      "radius_position": "Jupiter-like",
+      "atmosphere_type": "Hydrogen-Helium",
+      "principal_material": "Gas (H/He)",
       "toxicity_percent": 100,
       "habitability_percent": 0,
-      "distance_to_earth_ly": 0.000135,
+      "distance_to_earth_ly": 0.0001351453,
       "satellites": {
         "has_satellites": true,
         "count": 146,
-        "type": "Known"
+        "type": "Known",
+        "names": [
+          "Titan",
+          "Enceladus",
+          "Mimas",
+          "Rhea"
+        ]
       },
       "orbit_type": "Circular - Cold Zone",
       "coordinates_3d": {
-        "x_parsecs": null,
-        "y_parsecs": null,
-        "z_parsecs": null,
-        "x_light_years": null,
-        "y_light_years": null,
-        "z_light_years": null,
-        "system": "Unknown",
-        "note": "Coordinates unavailable"
+        "x_parsecs": 4.13874e-05,
+        "y_parsecs": 0.0,
+        "z_parsecs": 2.0022e-06,
+        "x_light_years": 0.0001349874,
+        "y_light_years": 0.0,
+        "z_light_years": 6.5304e-06,
+        "system": "Galactic (Earth/Sun centered)",
+        "note": "Solar System coordinates converted to Earth-centered reference frame"
       },
       "icrs_coordinates": {
         "right_ascension": {
-          "degrees": null,
-          "hours_format": null,
+          "degrees": 0.0,
+          "hours_format": "00h00m00.00s",
           "unit": "degrees"
         },
         "declination": {
-          "degrees": null,
-          "dms_format": null,
+          "degrees": 0.0,
+          "dms_format": "+00d00m00.00s",
           "unit": "degrees"
         },
         "distance": {
-          "parsecs": 0.0,
-          "light_years": 0.0001,
+          "parsecs": 4.14358e-05,
+          "light_years": 0.0001351453,
           "unit": "parsecs/light-years"
         },
         "parallax": {
-          "value": null,
+          "value": 206264806.247,
           "unit": "milliarcseconds (mas)"
         },
         "proper_motion": {
-          "ra": null,
-          "dec": null,
+          "ra": 0.0,
+          "dec": 0.0,
           "unit": "milliarcseconds/year (mas/yr)"
         },
         "epoch": "J2000.0",
-        "reference_frame": "ICRS (International Celestial Reference System)",
-        "note": "ICRS is the current standard celestial coordinate system"
+        "reference_frame": "Geocentric (Earth centered)",
+        "note": "Solar System coordinates in Earth-centered reference frame"
       }
-    },
-    "pl_bmasse": 95.2
+    }
   },
   {
     "pl_name": "Uranus",
     "hostname": "Sun",
-    "sy_dist": 8.8189968e-05,
+    "sy_dist": 4.848e-06,
     "pl_orbper": 30688.5,
     "pl_orbsmax": 19.191,
     "pl_orbeccen": 0.0472,
@@ -485,71 +438,72 @@
       "y": 0.0,
       "z": 0.259
     },
-    "distance_from_earth": {
-      "astronomical_units": 19.191,
-      "light_years": 0.000304407,
-      "parsecs": 9.3331e-05
-    },
     "characteristics": {
-      "radius_position": "Mini-Neptune",
-      "atmosphere_type": "Hydrogen-Helium-Methane (Ice Giant)",
+      "radius_position": "Neptune-like",
+      "atmosphere_type": "Hydrogen-Helium-Methane",
       "principal_material": "Ice Giant (H2O/CH4/NH3)",
       "toxicity_percent": 100,
       "habitability_percent": 0,
-      "distance_to_earth_ly": 0.00028765,
+      "distance_to_earth_ly": 0.000287666,
       "satellites": {
         "has_satellites": true,
         "count": 28,
-        "type": "Known"
+        "type": "Known",
+        "names": [
+          "Titania",
+          "Oberon",
+          "Umbriel",
+          "Ariel",
+          "Miranda"
+        ]
       },
       "orbit_type": "Circular - Frozen Zone",
       "coordinates_3d": {
-        "x_parsecs": null,
-        "y_parsecs": null,
-        "z_parsecs": null,
-        "x_light_years": null,
-        "y_light_years": null,
-        "z_light_years": null,
-        "system": "Unknown",
-        "note": "Coordinates unavailable"
+        "x_parsecs": 8.819e-05,
+        "y_parsecs": 0.0,
+        "z_parsecs": 1.2556e-06,
+        "x_light_years": 0.0002876369,
+        "y_light_years": 0.0,
+        "z_light_years": 4.0953e-06,
+        "system": "Galactic (Earth/Sun centered)",
+        "note": "Solar System coordinates converted to Earth-centered reference frame"
       },
       "icrs_coordinates": {
         "right_ascension": {
-          "degrees": null,
-          "hours_format": null,
+          "degrees": 0.0,
+          "hours_format": "00h00m00.00s",
           "unit": "degrees"
         },
         "declination": {
-          "degrees": null,
-          "dms_format": null,
+          "degrees": 0.0,
+          "dms_format": "+00d00m00.00s",
           "unit": "degrees"
         },
         "distance": {
-          "parsecs": 0.0001,
-          "light_years": 0.0003,
+          "parsecs": 8.81989e-05,
+          "light_years": 0.000287666,
           "unit": "parsecs/light-years"
         },
         "parallax": {
-          "value": null,
+          "value": 206264806.247,
           "unit": "milliarcseconds (mas)"
         },
         "proper_motion": {
-          "ra": null,
-          "dec": null,
+          "ra": 0.0,
+          "dec": 0.0,
           "unit": "milliarcseconds/year (mas/yr)"
         },
         "epoch": "J2000.0",
-        "reference_frame": "ICRS (International Celestial Reference System)",
-        "note": "ICRS is the current standard celestial coordinate system"
+        "reference_frame": "Geocentric (Earth centered)",
+        "note": "Solar System coordinates in Earth-centered reference frame"
       }
-    },
-    "pl_bmasse": 14.5
+    }
   },
   {
     "pl_name": "Neptune",
     "hostname": "Sun",
-    "sy_dist": 0.000140926512,
-    "pl_orbper": 60182.0,
+    "sy_dist": 4.848e-06,
+    "pl_orbper": 60182,
     "pl_orbsmax": 30.069,
     "pl_orbeccen": 0.0086,
     "pl_orbincl": 1.77,
@@ -563,76 +517,75 @@
       "y": 0.0,
       "z": 0.928
     },
-    "distance_from_earth": {
-      "astronomical_units": 30.069,
-      "light_years": 0.000476921,
-      "parsecs": 0.000146213
-    },
     "characteristics": {
-      "radius_position": "Mini-Neptune",
-      "atmosphere_type": "Hydrogen-Helium-Methane (Ice Giant)",
+      "radius_position": "Neptune-like",
+      "atmosphere_type": "Hydrogen-Helium-Methane",
       "principal_material": "Ice Giant (H2O/CH4/NH3)",
       "toxicity_percent": 100,
       "habitability_percent": 0,
-      "distance_to_earth_ly": 0.00045967,
+      "distance_to_earth_ly": 0.0004598744,
       "satellites": {
         "has_satellites": true,
         "count": 16,
-        "type": "Known"
+        "type": "Known",
+        "names": [
+          "Triton",
+          "Proteus",
+          "Nereid"
+        ]
       },
       "orbit_type": "Circular - Frozen Zone",
       "coordinates_3d": {
-        "x_parsecs": null,
-        "y_parsecs": null,
-        "z_parsecs": null,
-        "x_light_years": null,
-        "y_light_years": null,
-        "z_light_years": null,
-        "system": "Unknown",
-        "note": "Coordinates unavailable"
+        "x_parsecs": 0.0001409265,
+        "y_parsecs": 0.0,
+        "z_parsecs": 4.4989e-06,
+        "x_light_years": 0.0004596403,
+        "y_light_years": 0.0,
+        "z_light_years": 1.46736e-05,
+        "system": "Galactic (Earth/Sun centered)",
+        "note": "Solar System coordinates converted to Earth-centered reference frame"
       },
       "icrs_coordinates": {
         "right_ascension": {
-          "degrees": null,
-          "hours_format": null,
+          "degrees": 0.0,
+          "hours_format": "00h00m00.00s",
           "unit": "degrees"
         },
         "declination": {
-          "degrees": null,
-          "dms_format": null,
+          "degrees": 0.0,
+          "dms_format": "+00d00m00.00s",
           "unit": "degrees"
         },
         "distance": {
-          "parsecs": 0.0001,
-          "light_years": 0.0005,
+          "parsecs": 0.0001409983,
+          "light_years": 0.0004598744,
           "unit": "parsecs/light-years"
         },
         "parallax": {
-          "value": null,
+          "value": 206264806.247,
           "unit": "milliarcseconds (mas)"
         },
         "proper_motion": {
-          "ra": null,
-          "dec": null,
+          "ra": 0.0,
+          "dec": 0.0,
           "unit": "milliarcseconds/year (mas/yr)"
         },
         "epoch": "J2000.0",
-        "reference_frame": "ICRS (International Celestial Reference System)",
-        "note": "ICRS is the current standard celestial coordinate system"
+        "reference_frame": "Geocentric (Earth centered)",
+        "note": "Solar System coordinates in Earth-centered reference frame"
       }
-    },
-    "pl_bmasse": 17.1
+    }
   },
   {
     "pl_name": "Pluto",
     "hostname": "Sun",
-    "sy_dist": 0.000186560736,
-    "pl_orbper": 90560.0,
+    "sy_dist": 4.848e-06,
+    "pl_orbper": 90560,
     "pl_orbsmax": 39.482,
     "pl_orbeccen": 0.2488,
     "pl_orbincl": 17.16,
     "pl_rade": 0.186,
-    "pl_masse": 0.002,
+    "pl_masse": 0.0022,
     "pl_eqt": 44,
     "discoverymethod": "Known",
     "disc_year": 1930,
@@ -641,64 +594,65 @@
       "y": 0.0,
       "z": 11.858
     },
-    "distance_from_earth": {
-      "astronomical_units": 39.482,
-      "light_years": 0.000626404,
-      "parsecs": 0.000192039
-    },
     "characteristics": {
       "radius_position": "Sub-Earth",
       "atmosphere_type": "N2-CH4 (Thin)",
       "principal_material": "Ice/Rock (H2O/N2)",
       "toxicity_percent": 100,
       "habitability_percent": 0,
-      "distance_to_earth_ly": 0.00060852,
+      "distance_to_earth_ly": 0.0006367124,
       "satellites": {
         "has_satellites": true,
         "count": 5,
-        "type": "Known"
+        "type": "Known",
+        "names": [
+          "Charon",
+          "Styx",
+          "Nix",
+          "Kerberos",
+          "Hydra"
+        ]
       },
       "orbit_type": "Highly Elliptical - Frozen Zone",
       "coordinates_3d": {
-        "x_parsecs": null,
-        "y_parsecs": null,
-        "z_parsecs": null,
-        "x_light_years": null,
-        "y_light_years": null,
-        "z_light_years": null,
-        "system": "Unknown",
-        "note": "Coordinates unavailable"
+        "x_parsecs": 0.0001865607,
+        "y_parsecs": 0.0,
+        "z_parsecs": 5.74876e-05,
+        "x_light_years": 0.000608479,
+        "y_light_years": 0.0,
+        "z_light_years": 0.0001874992,
+        "system": "Galactic (Earth/Sun centered)",
+        "note": "Solar System coordinates converted to Earth-centered reference frame"
       },
       "icrs_coordinates": {
         "right_ascension": {
-          "degrees": null,
-          "hours_format": null,
+          "degrees": 0.0,
+          "hours_format": "00h00m00.00s",
           "unit": "degrees"
         },
         "declination": {
-          "degrees": null,
-          "dms_format": null,
+          "degrees": 0.0,
+          "dms_format": "+00d00m00.00s",
           "unit": "degrees"
         },
         "distance": {
-          "parsecs": 0.0002,
-          "light_years": 0.0006,
+          "parsecs": 0.0001952171,
+          "light_years": 0.0006367124,
           "unit": "parsecs/light-years"
         },
         "parallax": {
-          "value": null,
+          "value": 206264806.247,
           "unit": "milliarcseconds (mas)"
         },
         "proper_motion": {
-          "ra": null,
-          "dec": null,
+          "ra": 0.0,
+          "dec": 0.0,
           "unit": "milliarcseconds/year (mas/yr)"
         },
         "epoch": "J2000.0",
-        "reference_frame": "ICRS (International Celestial Reference System)",
-        "note": "ICRS is the current standard celestial coordinate system"
+        "reference_frame": "Geocentric (Earth centered)",
+        "note": "Solar System coordinates in Earth-centered reference frame"
       }
-    },
-    "pl_bmasse": 0.002
+    }
   }
 ]
