@@ -4,7 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Space Exploration - Hamburg AI Hackathon</title>
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+    <title>SpAIce - Explore 6,000+ Real Exoplanets in 3D</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="loading.css">
     <link rel="stylesheet" href="ui-style.css">
@@ -19,71 +20,84 @@
 </head>
 
 <body>
-    <!-- Loading Screen -->
-    <div id="loading-screen" class="loading-screen">
-        <div class="loading-stars"></div>
-        <div class="loading-content">
-            <h1 class="loading-title">SPACE ODYSSEY</h1>
-            <p class="loading-subtitle">Preparing your cosmic journey...</p>
+    <!-- Landing Page -->
+    <div id="loading-screen" class="lp">
+        <div class="lp-scanline"></div>
 
-            <!-- Info Slides Container -->
-            <div class="loading-slides">
-                <!-- Slide 1: Welcome -->
-                <div class="loading-slide active" data-slide="0">
-                    <div class="slide-icon">🌌</div>
-                    <h2 class="slide-title">Welcome to Space Odyssey</h2>
-                    <p class="slide-text">An innovative 3D space exploration experience powered by real NASA exoplanet data, real-time AI generation, and immersive audio narration.</p>
+        <header class="lp-header">
+            <span class="lp-agency">SpAIce MISSION CONTROL</span>
+            <span class="lp-status" id="loading-status">SYS BOOT</span>
+            <div class="lp-header-progress">
+                <div class="loading-progress-bar" id="header-progress-bar"></div>
+            </div>
+        </header>
+
+        <main class="lp-main">
+            <div class="lp-hero">
+                <p class="lp-preheading">NASA EXOPLANET ARCHIVE // 6,087 CONFIRMED WORLDS</p>
+                <h1 class="lp-title">SpAIce</h1>
+                <p class="lp-tagline">Real planets. Real data. AI-powered exploration.</p>
+            </div>
+
+            <div class="lp-grid">
+                <div class="lp-card">
+                    <h3>REAL NASA DATA</h3>
+                    <p>Every planet comes from the official NASA Exoplanet Archive with authentic coordinates, radius, temperature, and orbital parameters.</p>
                 </div>
-
-                <!-- Slide 2: Controls (All in One) -->
-                <div class="loading-slide" data-slide="1">
-                    <div class="slide-icon">🎮</div>
-                    <h2 class="slide-title">Controls</h2>
-                    <div class="slide-controls">
-                        <div class="control-row"><span class="key">Arrow Keys</span> Move Around</div>
-                        <div class="control-row"><span class="key">Click</span> Explore Planets</div>
-                        <div class="control-row"><span class="key">V</span> Change Camera</div>
-                        <div class="control-row"><span class="key">Right Panel</span> Use to Teleport</div>
-                    </div>
+                <div class="lp-card">
+                    <h3>AI COMPANION</h3>
+                    <p>SpAIce, your onboard AI, generates unique descriptions and answers questions about any planet you visit.</p>
                 </div>
-
-                <!-- Slide 3: NASA Data -->
-                <div class="loading-slide" data-slide="2">
-                    <div class="slide-icon">🛰️</div>
-                    <h2 class="slide-title">Real NASA Data</h2>
-                    <p class="slide-text">Explore 6,000 planets with real NASA data from the Exoplanet Archive featuring accurate coordinates, classifications, and scientific measurements.</p>
-                </div>
-
-                <!-- Slide 4: AI Features -->
-                <div class="loading-slide" data-slide="3">
-                    <div class="slide-icon">🤖</div>
-                    <h2 class="slide-title">AI-Powered Experience</h2>
-                    <p class="slide-text">Real-time OpenAI generation creates unique planet descriptions with immersive audio narration.</p>
+                <div class="lp-card">
+                    <h3>FLY YOUR SHIP</h3>
+                    <p>Pilot a spacecraft through the cosmos. Teleport across light-years. Switch between cockpit and chase cameras.</p>
                 </div>
             </div>
 
-            <!-- Slide Indicators -->
-            <div class="slide-indicators">
-                <span class="indicator active" data-indicator="0"></span>
-                <span class="indicator" data-indicator="1"></span>
-                <span class="indicator" data-indicator="2"></span>
-                <span class="indicator" data-indicator="3"></span>
+            <div class="lp-controls">
+                <span class="lp-key">ARROWS</span> Fly
+                <span class="lp-key">CLICK</span> Explore
+                <span class="lp-key">N</span> Ask AI
+                <span class="lp-key">T</span> Teleport
+                <span class="lp-key">V</span> Camera
             </div>
 
-            <div class="loading-progress">
-                <div class="loading-progress-bar"></div>
+            <!-- Planet Catalog -->
+            <div class="lp-catalog">
+                <h2>EXOPLANET CATALOG</h2>
+                <p class="lp-catalog-desc">Browse all confirmed exoplanets from the NASA archive. Data loads progressively.</p>
+
+                <div class="lp-catalog-toolbar">
+                    <input type="text" id="catalog-search" class="lp-catalog-search" placeholder="Search by planet name..." />
+                    <select id="catalog-type-filter" class="lp-catalog-select">
+                        <option value="">All Types</option>
+                        <option value="rocky">Rocky</option>
+                        <option value="gasGiant">Gas Giant</option>
+                        <option value="iceGiant">Ice Giant</option>
+                    </select>
+                    <span class="lp-catalog-count" id="catalog-count">Loading...</span>
+                </div>
+
+                <div class="lp-catalog-list" id="catalog-list">
+                    <div class="lp-catalog-loading">Loading planet data...</div>
+                </div>
             </div>
 
-            <p class="loading-status" id="loading-status">Initializing...</p>
-            <p class="loading-detail" id="loading-detail">Loading cluster index...</p>
-
-            <!-- Start Button (hidden until loading complete) -->
-            <button id="start-exploring-btn" class="start-exploring-btn hidden">
-                <span class="btn-icon">🚀</span>
-                <span class="btn-text">Start Exploring</span>
-                <span class="btn-glow"></span>
+            <button id="start-exploring-btn" class="lp-launch hidden">
+                LAUNCH MISSION
             </button>
-        </div>
+
+            <div class="lp-about">
+                <h2>ABOUT US</h2>
+                <p>SpAIce was created by <strong>Eduardo Pertierra</strong> and <strong>Irene Granados</strong>, two space enthusiasts who wanted to make the cosmos accessible to everyone. We believe exploring real scientific data should be beautiful, interactive, and fun.</p>
+                <p>This project was born at the <strong>Hamburg AI Hackathon</strong> and has grown into a full 3D exploration platform powered by NASA's Exoplanet Archive and Google Gemini AI.</p>
+                <p>Have ideas, feedback, or want to collaborate? Reach us at <a href="mailto:irenegm.edupp@gmail.com">irenegm.edupp@gmail.com</a></p>
+            </div>
+
+            <footer class="lp-footer">
+                <p class="lp-note">AI powered by Google Gemini (free tier &mdash; responses may be limited during high demand)</p>
+            </footer>
+        </main>
     </div>
 
     <div id="app">
@@ -245,6 +259,292 @@
                 "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
             }
         }
+    </script>
+
+    <!-- Space Sound Effects -->
+    <script>
+    (function spaceSounds() {
+        let audioCtx = null;
+        let ambientNodes = [];
+
+        function getCtx() {
+            if (!audioCtx) {
+                const AC = window.AudioContext || window.webkitAudioContext;
+                if (!AC) return null;
+                audioCtx = new AC();
+            }
+            return audioCtx;
+        }
+
+        // Ambient space hum — starts on first user interaction
+        function startAmbient() {
+            const ctx = getCtx();
+            if (!ctx || ambientNodes.length > 0) return;
+
+            // Deep drone
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = 42;
+            gain.gain.value = 0;
+            gain.gain.linearRampToValueAtTime(0.04, ctx.currentTime + 2);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start();
+
+            // High whisper
+            const osc2 = ctx.createOscillator();
+            const gain2 = ctx.createGain();
+            osc2.type = 'sine';
+            osc2.frequency.value = 220;
+            gain2.gain.value = 0;
+            gain2.gain.linearRampToValueAtTime(0.008, ctx.currentTime + 3);
+            osc2.connect(gain2);
+            gain2.connect(ctx.destination);
+            osc2.start();
+
+            // Noise layer
+            const bufSize = ctx.sampleRate * 2;
+            const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+            const data = buf.getChannelData(0);
+            for (let i = 0; i < bufSize; i++) data[i] = (Math.random() * 2 - 1) * 0.5;
+            const noise = ctx.createBufferSource();
+            noise.buffer = buf;
+            noise.loop = true;
+            const noiseGain = ctx.createGain();
+            noiseGain.gain.value = 0;
+            noiseGain.gain.linearRampToValueAtTime(0.012, ctx.currentTime + 4);
+            const noiseFilter = ctx.createBiquadFilter();
+            noiseFilter.type = 'lowpass';
+            noiseFilter.frequency.value = 300;
+            noise.connect(noiseFilter);
+            noiseFilter.connect(noiseGain);
+            noiseGain.connect(ctx.destination);
+            noise.start();
+
+            ambientNodes = [
+                { node: osc, gain },
+                { node: osc2, gain: gain2 },
+                { node: noise, gain: noiseGain }
+            ];
+        }
+
+        function stopAmbient() {
+            const ctx = getCtx();
+            if (!ctx) return;
+            ambientNodes.forEach(({ node, gain }) => {
+                gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.8);
+                setTimeout(() => { try { node.stop(); } catch(e){} }, 1000);
+            });
+            ambientNodes = [];
+        }
+
+        // Launch sound — ascending sweep + impact
+        function playLaunchSound() {
+            const ctx = getCtx();
+            if (!ctx) return;
+
+            // Ascending sweep
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(80, ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(1200, ctx.currentTime + 0.6);
+            gain.gain.setValueAtTime(0.12, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.8);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.8);
+
+            // Boom
+            const osc2 = ctx.createOscillator();
+            const gain2 = ctx.createGain();
+            osc2.type = 'sine';
+            osc2.frequency.setValueAtTime(60, ctx.currentTime + 0.3);
+            osc2.frequency.exponentialRampToValueAtTime(20, ctx.currentTime + 1);
+            gain2.gain.setValueAtTime(0, ctx.currentTime);
+            gain2.gain.linearRampToValueAtTime(0.15, ctx.currentTime + 0.35);
+            gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1);
+            osc2.connect(gain2);
+            gain2.connect(ctx.destination);
+            osc2.start();
+            osc2.stop(ctx.currentTime + 1);
+
+            // High shimmer
+            const osc3 = ctx.createOscillator();
+            const gain3 = ctx.createGain();
+            osc3.type = 'sine';
+            osc3.frequency.setValueAtTime(3000, ctx.currentTime + 0.2);
+            osc3.frequency.exponentialRampToValueAtTime(800, ctx.currentTime + 0.7);
+            gain3.gain.setValueAtTime(0, ctx.currentTime);
+            gain3.gain.linearRampToValueAtTime(0.06, ctx.currentTime + 0.25);
+            gain3.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.7);
+            osc3.connect(gain3);
+            gain3.connect(ctx.destination);
+            osc3.start();
+            osc3.stop(ctx.currentTime + 0.8);
+        }
+
+        // Start ambient on first click/touch anywhere on landing page
+        document.addEventListener('click', function once() {
+            startAmbient();
+            document.removeEventListener('click', once);
+        }, { once: true });
+
+        // Launch button — play sound + stop ambient
+        const launchBtn = document.getElementById('start-exploring-btn');
+        if (launchBtn) {
+            launchBtn.addEventListener('click', () => {
+                playLaunchSound();
+                stopAmbient();
+            });
+        }
+    })();
+    </script>
+
+    <!-- Planet Catalog (landing page) -->
+    <script>
+    (async function initCatalog() {
+        const listEl = document.getElementById('catalog-list');
+        const searchEl = document.getElementById('catalog-search');
+        const typeFilterEl = document.getElementById('catalog-type-filter');
+        const countEl = document.getElementById('catalog-count');
+        if (!listEl) return;
+
+        let allPlanets = [];
+        let sortKey = 'name';
+        let sortAsc = true;
+
+        function classifyPlanet(radius) {
+            if (radius > 6) return 'gasGiant';
+            if (radius >= 3) return 'iceGiant';
+            return 'rocky';
+        }
+
+        function sortPlanets(planets) {
+            const dir = sortAsc ? 1 : -1;
+            return [...planets].sort((a, b) => {
+                let va, vb;
+                switch (sortKey) {
+                    case 'name': va = (a.pl_name||'').toLowerCase(); vb = (b.pl_name||'').toLowerCase(); return va < vb ? -dir : va > vb ? dir : 0;
+                    case 'radius': va = a.pl_rade||0; vb = b.pl_rade||0; return (va - vb) * dir;
+                    case 'temp': va = a.pl_eqt||0; vb = b.pl_eqt||0; return (va - vb) * dir;
+                    case 'dist': va = a.sy_dist||999999; vb = b.sy_dist||999999; return (va - vb) * dir;
+                    case 'hab': va = a.characteristics?.habitability_percent||0; vb = b.characteristics?.habitability_percent||0; return (va - vb) * dir;
+                    default: return 0;
+                }
+            });
+        }
+
+        function arrow(key) {
+            if (sortKey !== key) return '';
+            return sortAsc ? ' ▲' : ' ▼';
+        }
+
+        function renderTable(planets) {
+            if (planets.length === 0) {
+                listEl.innerHTML = '<div class="lp-catalog-loading">No planets match your search.</div>';
+                countEl.textContent = '0 results';
+                return;
+            }
+
+            const sorted = sortPlanets(planets);
+            countEl.textContent = sorted.length + ' planets';
+
+            let html = '<table class="lp-catalog-table"><thead><tr>'
+                + `<th class="lp-sortable" data-sort="name">Name${arrow('name')}</th>`
+                + '<th>Type</th>'
+                + `<th class="lp-sortable" data-sort="radius">Radius${arrow('radius')}</th>`
+                + `<th class="lp-sortable" data-sort="temp">Temp${arrow('temp')}</th>`
+                + `<th class="lp-sortable" data-sort="dist">Distance${arrow('dist')}</th>`
+                + `<th class="lp-sortable" data-sort="hab">Habitability${arrow('hab')}</th>`
+                + '</tr></thead><tbody>';
+
+            for (const p of sorted) {
+                const type = classifyPlanet(p.pl_rade || 1);
+                const hab = p.characteristics?.habitability_percent || 0;
+                const dist = p.sy_dist ? (p.sy_dist * 3.262).toFixed(1) + ' ly' : '—';
+                const temp = p.pl_eqt ? Math.round(p.pl_eqt) + ' K' : '—';
+                const radius = p.pl_rade ? p.pl_rade.toFixed(2) + ' R⊕' : '—';
+                const typeLabel = type === 'gasGiant' ? 'Gas Giant' : type === 'iceGiant' ? 'Ice Giant' : 'Rocky';
+                const host = p.hostname ? `<span style="color:#607080;font-size:10px;display:block">${p.hostname}</span>` : '';
+
+                html += '<tr>'
+                    + `<td class="lp-catalog-name">${p.pl_name || '—'}${host}</td>`
+                    + `<td><span class="lp-catalog-type ${type}">${typeLabel}</span></td>`
+                    + `<td>${radius}</td>`
+                    + `<td>${temp}</td>`
+                    + `<td>${dist}</td>`
+                    + `<td><span class="lp-catalog-habitable"><span class="lp-catalog-habitable-fill" style="width:${Math.min(hab,100)}%"></span></span> ${hab}%</td>`
+                    + '</tr>';
+            }
+
+            html += '</tbody></table>';
+            listEl.innerHTML = html;
+
+            // Attach sort listeners
+            listEl.querySelectorAll('.lp-sortable').forEach(th => {
+                th.style.cursor = 'pointer';
+                th.addEventListener('click', () => {
+                    const key = th.dataset.sort;
+                    if (sortKey === key) { sortAsc = !sortAsc; } else { sortKey = key; sortAsc = true; }
+                    filterAndRender();
+                });
+            });
+        }
+
+        let currentFiltered = [];
+
+        function filterAndRender() {
+            const query = searchEl.value.toLowerCase().trim();
+            const typeFilter = typeFilterEl.value;
+
+            let filtered = allPlanets;
+            if (query) {
+                filtered = filtered.filter(p =>
+                    (p.pl_name || '').toLowerCase().includes(query) ||
+                    (p.hostname || '').toLowerCase().includes(query)
+                );
+            }
+            if (typeFilter) {
+                filtered = filtered.filter(p => classifyPlanet(p.pl_rade || 1) === typeFilter);
+            }
+            currentFiltered = filtered;
+            renderTable(filtered);
+        }
+
+        searchEl.addEventListener('input', filterAndRender);
+        typeFilterEl.addEventListener('change', filterAndRender);
+
+        // Load clusters progressively
+        try {
+            const indexRes = await fetch('./nasa_data/clusters/cluster_index.json');
+            const index = await indexRes.json();
+            const clusterNames = Object.keys(index.clusters);
+
+            const order = ['solar_system', 'nearby', 'medium', 'far', 'veryfar'];
+            clusterNames.sort((a, b) => {
+                const aIdx = order.findIndex(o => a.startsWith(o));
+                const bIdx = order.findIndex(o => b.startsWith(o));
+                return (aIdx === -1 ? 99 : aIdx) - (bIdx === -1 ? 99 : bIdx);
+            });
+
+            for (const name of clusterNames) {
+                try {
+                    const res = await fetch(`./nasa_data/clusters/${name}.json`);
+                    if (!res.ok) continue;
+                    const planets = await res.json();
+                    if (Array.isArray(planets)) {
+                        allPlanets.push(...planets);
+                        filterAndRender();
+                    }
+                } catch (e) { /* skip failed clusters */ }
+            }
+        } catch (e) {
+            listEl.innerHTML = '<div class="lp-catalog-loading">Could not load planet data.</div>';
+        }
+    })();
     </script>
 
     <!-- Main Application -->

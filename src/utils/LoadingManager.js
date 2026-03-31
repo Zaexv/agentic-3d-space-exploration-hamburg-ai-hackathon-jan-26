@@ -1,7 +1,5 @@
-import { PartyLoadingScene } from '../ui/PartyLoadingScene.js';
-
 /**
- * LoadingManager - Controls the loading screen with progress tracking and 3D party scene
+ * LoadingManager - Controls the loading screen with progress tracking
  */
 export class LoadingManager {
     constructor() {
@@ -26,11 +24,7 @@ export class LoadingManager {
         this.totalSlides = 4;
         this.slideInterval = null;
 
-        // Initialize 3D party scene
-        this.partyScene = null;
-        this.initPartyScene();
-
-        // Start slideshow
+        // Start slideshow (no-op if no slides exist)
         this.startSlideshow();
 
         // Start smooth progress animation
@@ -62,29 +56,12 @@ export class LoadingManager {
             this.screen.classList.add('hidden');
         }
 
-        // Dispose party scene
-        if (this.partyScene) {
-            this.partyScene.dispose();
-            this.partyScene = null;
-        }
-
         // Remove from DOM after transition
         setTimeout(() => {
             if (this.screen && this.screen.parentNode) {
                 this.screen.parentNode.removeChild(this.screen);
             }
         }, 500);
-    }
-
-    initPartyScene() {
-        if (this.screen) {
-            try {
-                this.partyScene = new PartyLoadingScene(this.screen);
-                console.log('🎉 Party loading scene initialized!');
-            } catch (error) {
-                console.warn('Could not initialize party scene:', error);
-            }
-        }
     }
 
     /**
