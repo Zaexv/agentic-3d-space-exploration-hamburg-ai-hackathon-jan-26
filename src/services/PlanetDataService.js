@@ -27,7 +27,7 @@ export class PlanetDataService {
 
         try {
             console.log('Loading cluster index...');
-            const response = await fetch('nasa_data/clusters/cluster_index.json');
+            const response = await fetch('./nasa_data/clusters/cluster_index.json');
 
             if (!response.ok) {
                 throw new Error(`Failed to load cluster index: ${response.status}`);

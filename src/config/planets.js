@@ -8,7 +8,7 @@
  */
 export async function loadSolarSystemPlanets() {
     try {
-        const response = await fetch('nasa_data/clusters/solar_system.json');
+        const response = await fetch('./nasa_data/clusters/solar_system.json');
         if (!response.ok) {
             throw new Error(`Failed to load solar system planets: ${response.status}`);
         }

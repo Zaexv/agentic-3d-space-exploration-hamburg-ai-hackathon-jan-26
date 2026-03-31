@@ -411,7 +411,7 @@ export class PlanetExplorationDialog {
 
         if (isEarth) {
             this.elements.heroContainer.innerHTML = `
-                <img src="/textures/planets/earth/earth_day_2048.jpg" class="exploration-hero-img" alt="Planet Earth">
+                <img src="./textures/planets/earth/earth_day_2048.jpg" class="exploration-hero-img" alt="Planet Earth">
                 <div class="exploration-hero-overlay"></div>
             `;
             this.elements.heroContainer.style.display = 'block';

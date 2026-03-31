@@ -96,47 +96,47 @@ export class Planet {
             switch (planetName) {
                 case 'Earth':
                     // Use real photographic textures for Earth
-                    texture = this.textureLoader.load('textures/planets/earth/earth_day_2048.jpg');
-                    specularMap = this.textureLoader.load('textures/planets/earth/earth_specular_2048.jpg');
-                    normalMap = this.textureLoader.load('textures/planets/earth/earth_normal_2048.jpg');
-                    emissiveMap = this.textureLoader.load('textures/planets/earth/earth_lights_2048.png');
+                    texture = this.textureLoader.load('./textures/planets/earth/earth_day_2048.jpg');
+                    specularMap = this.textureLoader.load('./textures/planets/earth/earth_specular_2048.jpg');
+                    normalMap = this.textureLoader.load('./textures/planets/earth/earth_normal_2048.jpg');
+                    emissiveMap = this.textureLoader.load('./textures/planets/earth/earth_lights_2048.png');
 
                     // Set texture properties for better quality
                     texture.colorSpace = THREE.SRGBColorSpace;
                     emissiveMap.colorSpace = THREE.SRGBColorSpace;
                     break;
                 case 'Mars':
-                    texture = this.textureLoader.load('textures/planets/mars/2k_mars.jpg');
+                    texture = this.textureLoader.load('./textures/planets/mars/2k_mars.jpg');
                     texture.colorSpace = THREE.SRGBColorSpace;
                     normalMap = generateNormalMap(1024, 2.5);
                     break;
                 case 'Jupiter':
-                    texture = this.textureLoader.load('textures/planets/jupiter/2k_jupiter.jpg');
+                    texture = this.textureLoader.load('./textures/planets/jupiter/2k_jupiter.jpg');
                     texture.colorSpace = THREE.SRGBColorSpace;
                     normalMap = generateNormalMap(512, 0.5);
                     break;
                 case 'Saturn':
-                    texture = this.textureLoader.load('textures/planets/saturn/2k_saturn.jpg');
+                    texture = this.textureLoader.load('./textures/planets/saturn/2k_saturn.jpg');
                     texture.colorSpace = THREE.SRGBColorSpace;
                     normalMap = generateNormalMap(512, 0.3);
                     break;
                 case 'Neptune':
-                    texture = this.textureLoader.load('textures/planets/neptune/2k_neptune.jpg');
+                    texture = this.textureLoader.load('./textures/planets/neptune/2k_neptune.jpg');
                     texture.colorSpace = THREE.SRGBColorSpace;
                     normalMap = generateNormalMap(512, 0.4);
                     break;
                 case 'Uranus':
-                    texture = this.textureLoader.load('textures/planets/uranus/2k_uranus.jpg');
+                    texture = this.textureLoader.load('./textures/planets/uranus/2k_uranus.jpg');
                     texture.colorSpace = THREE.SRGBColorSpace;
                     normalMap = generateNormalMap(512, 0.2);
                     break;
                 case 'Venus':
-                    texture = this.textureLoader.load('textures/planets/venus/2k_venus_atmosphere.jpg');
+                    texture = this.textureLoader.load('./textures/planets/venus/2k_venus_atmosphere.jpg');
                     texture.colorSpace = THREE.SRGBColorSpace;
                     normalMap = generateNormalMap(512, 0.1);
                     break;
                 case 'Mercury':
-                    texture = this.textureLoader.load('textures/planets/mercury/2k_mercury.jpg');
+                    texture = this.textureLoader.load('./textures/planets/mercury/2k_mercury.jpg');
                     texture.colorSpace = THREE.SRGBColorSpace;
                     normalMap = generateNormalMap(1024, 3.0);
                     break;
@@ -296,7 +296,7 @@ export class Planet {
     createClouds() {
         let texture;
         if (this.config.isSolar && (this.config.name === 'Earth' || this.config.pl_name === 'Earth')) {
-            texture = this.textureLoader.load('textures/planets/earth/earth_clouds_2048.png');
+            texture = this.textureLoader.load('./textures/planets/earth/earth_clouds_2048.png');
         }
 
         // Use new cloud shader for realistic clouds
