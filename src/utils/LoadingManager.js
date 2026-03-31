@@ -169,6 +169,7 @@ export class LoadingManager {
      * Start smooth progress animation based on time
      */
     startProgressAnimation() {
+        this.lastTickProgress = 0;
         this.progressAnimationId = setInterval(() => {
             const elapsed = Date.now() - this.startTime;
             const timeProgress = Math.min((elapsed / this.minimumLoadTime) * 100, 100);
@@ -188,6 +189,13 @@ export class LoadingManager {
 
             if (this.progressBar) {
                 this.progressBar.style.width = `${this.displayedProgress}%`;
+            }
+
+            // Play a subtle tick every 10% progress
+            const pct = Math.floor(this.displayedProgress / 10) * 10;
+            if (pct > this.lastTickProgress && pct < 100) {
+                this.lastTickProgress = pct;
+                if (window.playDataTick) window.playDataTick(400 + pct * 6);
             }
 
             // Check if we can finish
@@ -217,11 +225,12 @@ export class LoadingManager {
      */
     showStartButton() {
         const loadTime = ((Date.now() - this.startTime) / 1000).toFixed(1);
-        this.updateStatus('Ready for Launch! 🚀', `Loaded in ${loadTime}s`);
+        this.updateStatus('SYSTEMS READY', `Loaded in ${loadTime}s`);
 
         if (this.startButton) {
             setTimeout(() => {
                 this.startButton.classList.remove('hidden');
+                if (window.playReadyChime) window.playReadyChime();
             }, 300);
         }
     }
