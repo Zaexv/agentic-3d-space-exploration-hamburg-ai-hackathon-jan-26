@@ -1,6 +1,7 @@
 /**
- * OpenAIService - OpenAI Integration for Planet Descriptions
- * Generates descriptive text about planets based on JSON data
+ * LLMService - Gemini Integration for Planet Descriptions
+ * Generates descriptive text about planets using Google Gemini API
+ * (OpenAI-compatible endpoint)
  */
 
 import { CONFIG } from '../config/config.js';
@@ -8,59 +9,65 @@ import { CONFIG } from '../config/config.js';
 class OpenAIService {
   constructor(apiKey) {
     if (!apiKey) {
-      console.warn('OpenAI API key not provided. AI descriptions will be disabled.');
-      this.client = null;
+      console.warn('API key not provided. AI descriptions will be disabled.');
       this.enabled = false;
       return;
     }
 
-    // Try to dynamically import OpenAI - will fail gracefully in static builds
-    this.enabled = false;
-    this.client = null;
-    this.initPromise = this.initializeClient(apiKey);
+    this.apiKey = apiKey;
+    this.enabled = true;
+    this.baseURL = CONFIG.openai.baseURL;
 
     this.config = {
       model: CONFIG.openai.model,
       temperature: 0.7,
       max_tokens: 300
     };
-    
+
     this.cache = new Map();
-  }
-  
-  async initializeClient(apiKey) {
-    try {
-      // Dynamic import - only works in environments where openai is available
-      const { default: OpenAI } = await import('openai');
-      this.client = new OpenAI({
-        apiKey: apiKey,
-        dangerouslyAllowBrowser: true // Note: For production, use a backend proxy
-      });
-      this.enabled = true;
-      console.log('✅ OpenAI service initialized');
-    } catch (error) {
-      console.warn('⚠️ OpenAI module not available (static build). AI features disabled.');
-      this.enabled = false;
-      this.client = null;
-    }
+    this.initPromise = Promise.resolve();
+
+    console.log(`✅ LLM service initialized (${this.config.model})`);
   }
 
-  /**
-   * Configure AI behavior
-   * @param {Object} options - Configuration options (model, temperature, max_tokens)
-   */
   configure(options) {
     this.config = { ...this.config, ...options };
   }
 
-  /**
-   * Build a prompt from planet data
-   * @param {Object} planetData - Planet information as JSON
-   * @returns {string} Formatted prompt
-   */
+  async _chatCompletion(messages, { temperature, max_tokens } = {}) {
+    const body = {
+      model: this.config.model,
+      temperature: temperature ?? this.config.temperature,
+      max_tokens: max_tokens ?? this.config.max_tokens,
+      messages
+    };
+
+    const response = await fetch(this.baseURL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${this.apiKey}`
+      },
+      body: JSON.stringify(body)
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      const msg = errorData.error?.message || response.statusText;
+      if (response.status === 401) throw new Error('Invalid API key. Please check your credentials.');
+      if (response.status === 429) throw new Error('Rate limit exceeded. Please try again later.');
+      throw new Error(`API error (${response.status}): ${msg}`);
+    }
+
+    const data = await response.json();
+    const content = data.choices?.[0]?.message?.content?.trim();
+    if (!content) throw new Error('No content in API response');
+    return content;
+  }
+
   buildPrompt(planetData) {
     const planetInfo = JSON.stringify(planetData, null, 2);
-    
+
     return `You are an expert astronomer and science communicator. Based on the following planet data, create an engaging and informative description (2-3 paragraphs) that would captivate someone exploring this celestial body in a 3D space visualization.
 
 Planet Data:
@@ -69,155 +76,62 @@ ${planetInfo}
 Write a vivid, scientifically-inspired description that highlights the unique characteristics, atmosphere, and interesting facts about this planet. Make it immersive and educational.`;
   }
 
-  /**
-   * Generate a description for a planet
-   * @param {Object} planetData - Planet information as JSON
-   * @param {boolean} useCache - Whether to use cached results (default: true)
-   * @returns {Promise<string>} Generated description
-   */
   async generatePlanetDescription(planetData, useCache = true) {
-    // Wait for initialization to complete
     await this.initPromise;
-    
-    // If service is not enabled, return fallback immediately
-    if (!this.enabled || !this.client) {
-      console.log('AI service not enabled, using fallback description');
+
+    if (!this.enabled) {
       return this.getFallbackDescription(planetData);
     }
-    
+
     try {
-      // Generate cache key
       const cacheKey = JSON.stringify(planetData);
-      
-      // Check cache
+
       if (useCache && this.cache.has(cacheKey)) {
-        console.log('Using cached description for planet:', planetData.name);
         return this.cache.get(cacheKey);
       }
 
-      console.log('Generating AI description for planet:', planetData.name);
-      
-      // Build prompt
       const prompt = this.buildPrompt(planetData);
-      
-      // Call OpenAI API
-      const response = await this.client.chat.completions.create({
-        model: this.config.model,
-        temperature: this.config.temperature,
-        max_tokens: this.config.max_tokens,
-        messages: [
-          {
-            role: 'system',
-            content: 'You are an expert astronomer and science communicator who creates vivid, educational descriptions of celestial bodies.'
-          },
-          {
-            role: 'user',
-            content: prompt
-          }
-        ]
-      });
 
-      // Extract description
-      const description = response.choices[0]?.message?.content?.trim();
-      
-      if (!description) {
-        throw new Error('No description generated from OpenAI');
-      }
+      const description = await this._chatCompletion([
+        { role: 'system', content: 'You are an expert astronomer and science communicator who creates vivid, educational descriptions of celestial bodies.' },
+        { role: 'user', content: prompt }
+      ]);
 
-      // Cache the result
       this.cache.set(cacheKey, description);
-      
       return description;
-      
+
     } catch (error) {
       console.error('Error generating planet description:', error);
-      
-      // Handle specific error types
-      if (error.status === 401) {
-        throw new Error('Invalid OpenAI API key. Please check your credentials.');
-      } else if (error.status === 429) {
-        throw new Error('Rate limit exceeded. Please try again later.');
-      } else if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
-        throw new Error('Network error. Please check your internet connection.');
-      }
-      
-      // Return fallback description
       return this.getFallbackDescription(planetData);
     }
   }
 
-  /**
-   * Generate a completion from a custom prompt (for chat functionality)
-   * @param {string} prompt - The prompt to send to OpenAI
-   * @param {boolean} useCache - Whether to use cached results (default: false for chat)
-   * @returns {Promise<string>} Generated response
-   */
   async generateCompletion(prompt, useCache = false) {
-    try {
-      // Generate cache key
-      const cacheKey = `completion_${prompt}`;
-      
-      // Check cache
-      if (useCache && this.cache.has(cacheKey)) {
-        console.log('Using cached completion');
-        return this.cache.get(cacheKey);
-      }
+    const cacheKey = `completion_${prompt}`;
 
-      console.log('Generating AI completion...');
-      
-      // Call OpenAI API
-      const response = await this.client.chat.completions.create({
-        model: this.config.model,
-        temperature: this.config.temperature,
-        max_tokens: this.config.max_tokens,
-        messages: [
-          {
-            role: 'user',
-            content: prompt
-          }
-        ]
-      });
-
-      // Extract response
-      const completion = response.choices[0]?.message?.content?.trim();
-      
-      if (!completion) {
-        throw new Error('No completion generated from OpenAI');
-      }
-
-      // Cache the result if requested
-      if (useCache) {
-        this.cache.set(cacheKey, completion);
-      }
-      
-      return completion;
-      
-    } catch (error) {
-      console.error('Error generating completion:', error);
-      throw error;
+    if (useCache && this.cache.has(cacheKey)) {
+      return this.cache.get(cacheKey);
     }
+
+    const completion = await this._chatCompletion([
+      { role: 'user', content: prompt }
+    ]);
+
+    if (useCache) {
+      this.cache.set(cacheKey, completion);
+    }
+
+    return completion;
   }
 
-  /**
-   * Generate AI insights for planet characteristics
-   * @param {Object} planetData - Planet information with characteristics
-   * @param {boolean} useCache - Whether to use cached results (default: true)
-   * @returns {Promise<string>} Generated insights
-   */
   async generateCharacteristicsInsights(planetData, useCache = true) {
     try {
-      // Generate cache key
       const cacheKey = `insights_${planetData.pl_name || planetData.name}`;
-      
-      // Check cache
+
       if (useCache && this.cache.has(cacheKey)) {
-        console.log('Using cached insights for planet:', planetData.pl_name || planetData.name);
         return this.cache.get(cacheKey);
       }
 
-      console.log('Generating AI questions for planet:', planetData.pl_name || planetData.name);
-      
-      // Build characteristics-specific prompt
       const char = planetData.characteristics || {};
       const prompt = `You are an expert astronomer analyzing exoplanet data. Based on the following planet characteristics, generate 4-5 thought-provoking questions that a scientist or space enthusiast might ask about this planet. Make them specific to this planet's unique features.
 
@@ -241,117 +155,45 @@ HABITABILITY:
 - Toxicity Level: ${char.toxicity_percent !== undefined ? char.toxicity_percent + '%' : 'Unknown'}
 - Atmosphere: ${char.atmosphere_type || 'Unknown'}
 
-Generate 4-5 specific questions that scientists would want to answer about this planet. Format each question on a new line starting with "•". Focus on:
-- What makes this planet unique or interesting?
-- What could we learn from studying it?
-- How does it compare to Earth or other known planets?
-- What mysteries does it present?
+Generate 4-5 specific questions that scientists would want to answer about this planet. Format each question on a new line starting with "•". Focus on what makes this planet unique, what we could learn, how it compares to Earth, and what mysteries it presents.`;
 
-Make the questions engaging and scientifically relevant.`;
-      
-      // Call OpenAI API
-      const response = await this.client.chat.completions.create({
-        model: this.config.model,
-        temperature: 0.8,
-        max_tokens: 300,
-        messages: [
-          {
-            role: 'system',
-            content: 'You are an expert astronomer who generates thoughtful, scientifically relevant questions about exoplanets. Your questions help people think deeply about what makes each planet interesting and what we could learn from studying it.'
-          },
-          {
-            role: 'user',
-            content: prompt
-          }
-        ]
-      });
+      const insights = await this._chatCompletion([
+        { role: 'system', content: 'You are an expert astronomer who generates thoughtful, scientifically relevant questions about exoplanets.' },
+        { role: 'user', content: prompt }
+      ], { temperature: 0.8, max_tokens: 300 });
 
-      // Extract insights
-      const insights = response.choices[0]?.message?.content?.trim();
-      
-      if (!insights) {
-        throw new Error('No insights generated from OpenAI');
-      }
-
-      // Cache the result
       this.cache.set(cacheKey, insights);
-      
       return insights;
-      
+
     } catch (error) {
       console.error('Error generating characteristics insights:', error);
-      
-      // Handle specific error types
-      if (error.status === 401) {
-        throw new Error('Invalid OpenAI API key. Please check your credentials.');
-      } else if (error.status === 429) {
-        throw new Error('Rate limit exceeded. Please try again later.');
-      }
-      
       throw error;
     }
   }
 
-  /**
-   * Chat about a planet (conversational interface)
-   * @param {string} userMessage - User's question
-   * @param {Object} planetData - Planet information
-   * @param {Array} chatHistory - Previous conversation history
-   * @returns {Promise<string>} AI response
-   */
   async chatAboutPlanet(userMessage, planetData, chatHistory = []) {
     try {
-      console.log('Chat about planet:', planetData.pl_name || planetData.name);
-      
       const char = planetData.characteristics || {};
-      
-      // Build concise system message - only include key data
+
       const systemMessage = `You are an astronomer assistant for "${planetData.pl_name || planetData.name}". Answer briefly (1-2 sentences). Data: ${(planetData.sy_dist * 3.262).toFixed(1)}ly away, ${char.radius_position || 'Unknown type'}, ${planetData.pl_rade?.toFixed(1) || '?'}R⊕, ${planetData.pl_eqt || '?'}K, ${char.habitability_percent || 0}% habitable.`;
 
-      // Build messages array
       const messages = [
         { role: 'system', content: systemMessage },
-        ...chatHistory.slice(-6), // Last 3 exchanges (6 messages)
+        ...chatHistory.slice(-6),
         { role: 'user', content: userMessage }
       ];
-      
-      // Call OpenAI API with faster model and settings
-      const response = await this.client.chat.completions.create({
-        model: 'gpt-3.5-turbo',
-        temperature: 0.7,
-        max_tokens: 150, // Reduced for faster response
-        messages: messages
-      });
 
-      const reply = response.choices[0]?.message?.content?.trim();
-      
-      if (!reply) {
-        throw new Error('No response generated from OpenAI');
-      }
-      
-      return reply;
-      
+      return await this._chatCompletion(messages, { max_tokens: 150 });
+
     } catch (error) {
       console.error('Error in chat:', error);
-      
-      if (error.status === 401) {
-        throw new Error('Invalid OpenAI API key');
-      } else if (error.status === 429) {
-        throw new Error('Rate limit exceeded. Please wait a moment.');
-      }
-      
       throw error;
     }
   }
 
-  /**
-   * Generate fallback description when AI fails
-   * @param {Object} planetData - Planet information
-   * @returns {string} Basic description
-   */
   getFallbackDescription(planetData) {
     const { name, type, size, temperature, moons, atmosphere } = planetData;
-    
+
     return `${name} is a ${type || 'mysterious'} planet${size ? ` with a relative size of ${size}` : ''}. ${
       temperature ? `Surface temperatures average around ${temperature}°C. ` : ''
     }${moons ? `It has ${moons} moon${moons > 1 ? 's' : ''}. ` : ''}${
@@ -359,24 +201,20 @@ Make the questions engaging and scientifically relevant.`;
     }`;
   }
 
-  /**
-   * Clear the cache
-   */
   clearCache() {
     this.cache.clear();
-    console.log('OpenAI description cache cleared');
   }
 
-  /**
-   * Get cache statistics
-   * @returns {Object} Cache info
-   */
   getCacheStats() {
     return {
       size: this.cache.size,
       entries: Array.from(this.cache.keys()).map(key => {
-        const data = JSON.parse(key);
-        return data.name || 'Unknown';
+        try {
+          const data = JSON.parse(key);
+          return data.name || 'Unknown';
+        } catch {
+          return key.substring(0, 30);
+        }
       })
     };
   }

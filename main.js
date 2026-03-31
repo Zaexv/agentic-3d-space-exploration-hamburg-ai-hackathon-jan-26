@@ -15,8 +15,7 @@ import { ProximityDetector } from './src/utils/ProximityDetector.js';
 import { NarrationService } from './src/services/NarrationService.js';
 import { NarratorDialog } from './src/ui/NarratorDialog.js';
 import OpenAIService from './src/ai/OpenAIService.js';
-import ElevenLabsService from './src/ai/ElevenLabsService.js';
-import { CONFIG, isAIConfigured, isNarrationConfigured } from './src/config/config.js';
+import { CONFIG, isAIConfigured } from './src/config/config.js';
 import { WarpTunnel } from './src/objects/WarpTunnel.js';
 import { GalaxyField } from './src/objects/GalaxyField.js';
 import { SpaceDust } from './src/objects/SpaceDust.js';
@@ -194,7 +193,6 @@ class App {
 
     initExplorationDialog() {
         let openAIService = null;
-        let elevenLabsService = null;
 
         if (isAIConfigured()) {
             try {
@@ -204,18 +202,10 @@ class App {
             }
         }
 
-        if (isNarrationConfigured()) {
-            try {
-                elevenLabsService = new ElevenLabsService(CONFIG.elevenLabs.apiKey);
-            } catch (error) {
-                console.warn('Eleven Labs service not initialized:', error.message);
-            }
-        }
-
-        this.explorationDialog = new PlanetExplorationDialog(openAIService, elevenLabsService, this);
+        this.explorationDialog = new PlanetExplorationDialog(openAIService, null, this);
 
         this.proximityDetector = new ProximityDetector(this.planetDataService, this.exoplanetField);
-        this.narrationService = new NarrationService(openAIService, elevenLabsService);
+        this.narrationService = new NarrationService(openAIService, null);
         this.narratorDialog = new NarratorDialog(this.narrationService);
 
         window.planetExplorationDialog = this.explorationDialog;
