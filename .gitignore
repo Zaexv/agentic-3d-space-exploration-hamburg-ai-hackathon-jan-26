@@ -23,3 +23,4 @@ nasa_data/clusters/no_position.json
 nasa_data/clusters/veryfar_quad1.json
 nasa_data/clusters/far_quad1.json
 nasa_data/venv/
+pipelines/data/

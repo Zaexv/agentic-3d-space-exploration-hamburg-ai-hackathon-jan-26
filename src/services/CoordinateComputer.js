@@ -22,7 +22,14 @@ export function computeCoordinates(planet) {
         const maxPos = Math.max(Math.abs(planet.position.x), Math.abs(planet.position.y), Math.abs(planet.position.z));
 
         let x, y, z;
-        if (maxPos < 50 && distLightYears > 1) {
+
+        // Solar system planets: position is in AU, convert to light-years
+        const AU_TO_LY = 1.581e-5;
+        if (planet.hostname === 'Sun') {
+            x = planet.position.x * AU_TO_LY;
+            y = planet.position.y * AU_TO_LY;
+            z = planet.position.z * AU_TO_LY;
+        } else if (maxPos < 50 && distLightYears > 1) {
             const ra = planet.ra;
             const dec = planet.dec;
             if (ra != null && dec != null) {

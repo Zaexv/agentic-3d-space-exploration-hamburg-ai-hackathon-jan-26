@@ -51,13 +51,11 @@ export class RendererManager {
     }
 
     configureRenderer() {
-        this.renderer.physicallyCorrectLights = true;
-        this.renderer.shadowMap.enabled = true;
-        this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-        this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        this.renderer.toneMappingExposure = 1.0;
-
-        // Ensure proper depth sorting for stars vs planets
+        // physicallyCorrectLights OFF — inverse-square falloff kills light at astronomical distances
+        this.renderer.physicallyCorrectLights = false;
+        this.renderer.shadowMap.enabled = false; // Shadows don't work at this scale
+        this.renderer.toneMapping = THREE.LinearToneMapping;
+        this.renderer.toneMappingExposure = 1.2;
         this.renderer.sortObjects = true;
     }
 
@@ -71,17 +69,10 @@ export class RendererManager {
     }
 
     render(scene, camera) {
-        // Init composer on first frame if needed
-        if (!this.composer) {
-            this.initPostProcessing(scene, camera);
-        }
-
-        // Use Composer if available, otherwise standard
-        if (this.composer) {
-            this.composer.render();
-        } else {
-            this.renderer.render(scene, camera);
-        }
+        // Direct rendering — no post-processing.
+        // PostProcessing (bloom, film grain) was causing blinking artifacts
+        // with logarithmic depth buffer at astronomical scales.
+        this.renderer.render(scene, camera);
     }
 
     updateSize(canvas) {

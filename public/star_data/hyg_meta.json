@@ -1,0 +1,18 @@
+{
+  "star_count": 109401,
+  "format": "float32",
+  "fields_per_star": 7,
+  "fields": [
+    "x_ly",
+    "y_ly",
+    "z_ly",
+    "r",
+    "g",
+    "b",
+    "size"
+  ],
+  "bounds": {
+    "min_ly": -3193,
+    "max_ly": 3188
+  }
+}

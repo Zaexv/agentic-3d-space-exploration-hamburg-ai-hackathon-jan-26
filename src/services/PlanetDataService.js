@@ -3,8 +3,7 @@
  * with position-based dynamic loading
  */
 import { classifyPlanet, getScaledRadius, calculateFlattening, calculateMass } from './PlanetClassifier.js';
-import { generatePlanetColors, generateAtmosphere, generateRings, applySolarSystemOverrides } from './PlanetVisualGenerator.js';
-import { computeCoordinates } from './CoordinateComputer.js';
+import { generatePlanetColors, generateAtmosphere, generateRings } from './PlanetVisualGenerator.js';
 
 export class PlanetDataService {
     constructor() {
@@ -13,7 +12,6 @@ export class PlanetDataService {
         this.isLoading = false;
         this.loadedClusters = new Set();
         this.clusterIndex = null;
-        this.sceneScale = 10; // 1 light-year = 10 scene units
     }
 
     /**
@@ -44,13 +42,29 @@ export class PlanetDataService {
     }
 
     /**
-     * Enrich planet data with computed 3D coordinates and visual assets
+     * Enrich planet data with pre-computed 3D coordinates and visual assets
      */
     enrichPlanetData(planet) {
-        // 1. Compute 3D Coordinates
-        computeCoordinates(planet);
+        // 1. Ensure characteristics object exists
+        if (!planet.characteristics) {
+            planet.characteristics = {};
+        }
 
-        // 2. Classify Planet & Generate Visual Attributes
+        // 2. Map pre-computed coordinates to coordinates_3d format
+        if (planet.x_ly != null && !planet.characteristics.coordinates_3d?.x_light_years) {
+            planet.characteristics.coordinates_3d = {
+                x_light_years: planet.x_ly,
+                y_light_years: planet.y_ly,
+                z_light_years: planet.z_ly,
+                system: 'Pre-computed (RA/Dec/Distance)'
+            };
+        }
+
+        if (!planet.characteristics.distance_to_earth_ly && planet.dist_ly) {
+            planet.characteristics.distance_to_earth_ly = planet.dist_ly;
+        }
+
+        // 3. Classify Planet & Generate Visual Attributes
         if (!planet.planetType) {
             const radius = planet.pl_rade || 1.0;
             const temp = planet.pl_eqt || 288;
@@ -72,30 +86,9 @@ export class PlanetDataService {
             planet.rings = generateRings(classification, planet.pl_name);
             planet.flattening = calculateFlattening(classification, planet.pl_name);
             planet.mass = calculateMass(planet);
-
-            if (planet.hostname === 'Sun') {
-                applySolarSystemOverrides(planet);
-            }
         }
 
         return planet;
-    }
-
-    /**
-     * Load solar system planets from cluster
-     */
-    async loadSolarSystem() {
-        console.log('  🌍 Loading solar system from PlanetDataService...');
-        const solarPlanets = await this.loadCluster('solar_system');
-
-        if (solarPlanets && solarPlanets.length > 0) {
-            solarPlanets.forEach(p => p.isSolar = true);
-            console.log(`  ✓ Loaded ${solarPlanets.length} solar system planets`);
-        } else {
-            console.warn('  ⚠️ No solar system planets loaded');
-        }
-
-        return solarPlanets;
     }
 
     /**

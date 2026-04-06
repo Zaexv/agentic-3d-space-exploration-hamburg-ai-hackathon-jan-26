@@ -1,17 +1,19 @@
 /**
  * ProximityDetector - Detects closest planet to spacecraft
- * Handles scaled coordinate system (x10000)
+ * Uses AU_TO_SCENE and LY_TO_SCENE for coordinate conversion
  */
 import * as THREE from 'three';
+import { AU_TO_SCENE, LY_TO_SCENE } from '../config/SceneConstants.js';
 
 export class ProximityDetector {
-    constructor(planetDataService, exoplanetField) {
+    constructor(planetDataService, exoplanetField, solarSystemField) {
         this.dataService = planetDataService;
         this.exoplanetField = exoplanetField;
+        this.solarSystemField = solarSystemField;
         this.lastClosestPlanet = null;
         this.updateThrottle = 500; // ms between updates
         this.lastUpdateTime = 0;
-        this.searchRadius = 5000000; // Search within 5M units (scaled)
+        this.searchRadius = 1000000; // Works for both modes
     }
 
     /**
@@ -21,16 +23,16 @@ export class ProximityDetector {
      */
     getClosestPlanet(position) {
         const now = Date.now();
-        
+
         // Throttle updates
         if (now - this.lastUpdateTime < this.updateThrottle) {
             return this.lastClosestPlanet;
         }
-        
+
         this.lastUpdateTime = now;
 
         const allPlanets = this.dataService.getAllPlanets();
-        
+
         if (!allPlanets || allPlanets.length === 0) {
             return null;
         }
@@ -40,35 +42,26 @@ export class ProximityDetector {
         let closestWorldPos = null;
         let closestMesh = null;
 
-        const globalScale = 10000;
-
         for (const planet of allPlanets) {
             // Get planet position in world coordinates
             let planetWorldPos;
-            
-            // TRY BOTH COORDINATE SYSTEMS with logging
-            const isSolarPlanet = planet.hostname === 'Sun';
-            
-            if (planet.characteristics?.coordinates_3d) {
-                // NEW UNIFIED SYSTEM: All enriched planets have this
+
+            const isSolarPlanet = planet.isSolar || planet.hostname === 'Sun';
+
+            if (isSolarPlanet && planet.position) {
+                planetWorldPos = new THREE.Vector3(
+                    planet.position.x * AU_TO_SCENE,
+                    planet.position.y * AU_TO_SCENE,
+                    planet.position.z * AU_TO_SCENE
+                );
+            } else if (planet.characteristics?.coordinates_3d) {
                 const coords = planet.characteristics.coordinates_3d;
                 planetWorldPos = new THREE.Vector3(
-                    coords.x_light_years * 10 * globalScale,
-                    coords.y_light_years * 10 * globalScale,
-                    coords.z_light_years * 10 * globalScale
+                    coords.x_light_years * LY_TO_SCENE,
+                    coords.y_light_years * LY_TO_SCENE,
+                    coords.z_light_years * LY_TO_SCENE
                 );
-                console.log(`📍 ${planet.pl_name} using coordinates_3d:`, coords.x_light_years, coords.y_light_years, coords.z_light_years);
-            } else if (isSolarPlanet && planet.position) {
-                // FALLBACK FOR SOLAR SYSTEM: Old position system
-                planetWorldPos = new THREE.Vector3(
-                    planet.position.x * 10 * globalScale,
-                    planet.position.y * 10 * globalScale,
-                    planet.position.z * 10 * globalScale
-                );
-                console.log(`📍 ${planet.pl_name} using position (fallback):`, planet.position.x, planet.position.y, planet.position.z);
             } else {
-                // No valid coordinates at all
-                console.warn('⚠️ Planet missing both coordinates_3d AND position:', planet.pl_name);
                 continue;
             }
 
@@ -79,43 +72,44 @@ export class ProximityDetector {
                 closestDistance = distance;
                 closestPlanet = planet;
                 closestWorldPos = planetWorldPos;
-                
-                // Reset mesh for each new closest planet
+
+                // Try to find the mesh for this planet
                 let foundMesh = null;
-                
-                // Try to find the mesh for this planet in the exoplanet field
-                if (this.exoplanetField && this.exoplanetField.meshGroup) {
-                    // Search through ALL meshes in the group (includes Solar System)
-                    this.exoplanetField.meshGroup.traverse((child) => {
+
+                // Check solar system group first
+                if (isSolarPlanet && this.solarSystemField && this.solarSystemField.group) {
+                    this.solarSystemField.group.traverse((child) => {
                         if (child.isMesh && child.userData && child.userData.planetData) {
-                            const childPlanetName = child.userData.planetData.pl_name;
-                            if (childPlanetName === planet.pl_name) {
+                            if (child.userData.planetData.pl_name === planet.pl_name) {
                                 foundMesh = child;
                             }
                         }
                     });
-                    
-                    if (foundMesh) {
-                        console.log(`✅ Found mesh for ${planet.pl_name}`);
-                    } else {
-                        console.warn(`❌ Mesh NOT found for ${planet.pl_name}`);
-                    }
                 }
-                
+
+                // Check exoplanet field
+                if (!foundMesh && this.exoplanetField && this.exoplanetField.meshGroup) {
+                    this.exoplanetField.meshGroup.traverse((child) => {
+                        if (child.isMesh && child.userData && child.userData.planetData) {
+                            if (child.userData.planetData.pl_name === planet.pl_name) {
+                                foundMesh = child;
+                            }
+                        }
+                    });
+                }
+
                 closestMesh = foundMesh;
             }
         }
 
         if (closestPlanet) {
-            console.log(`🎯 Closest planet: ${closestPlanet.pl_name} (${(closestDistance / 10000).toFixed(2)} scaled units) - hasMesh: ${!!closestMesh}`);
-            
             this.lastClosestPlanet = {
                 planet: closestPlanet,
                 distance: closestDistance,
                 worldPosition: closestWorldPos,
                 mesh: closestMesh
             };
-            
+
             return this.lastClosestPlanet;
         }
 
@@ -129,7 +123,7 @@ export class ProximityDetector {
     hasClosestPlanetChanged(currentClosest) {
         if (!this.lastClosestPlanet && !currentClosest) return false;
         if (!this.lastClosestPlanet || !currentClosest) return true;
-        
+
         return this.lastClosestPlanet.planet.pl_name !== currentClosest.planet.pl_name;
     }
 

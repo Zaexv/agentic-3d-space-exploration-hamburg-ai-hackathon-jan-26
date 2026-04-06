@@ -4,11 +4,10 @@ import {
     generateGasGiantTextureAsync,
     generateIceGiantTextureAsync,
     generateNormalMapAsync,
-    getColorByComposition,
-    generateCloudTexture
+    getColorByComposition
 } from '../utils/textureGenerator.js';
-import { generateEarthTexture } from '../utils/PlanetTextureGenerator.js';
-import { createAtmosphere, createCloudLayer } from '../shaders/AtmosphereShader.js';
+import { createAtmosphere } from '../shaders/AtmosphereShader.js';
+import { LY_TO_SCENE, EARTH_RADIUS_SCALE, MAX_PLANET_RADIUS, MIN_PLANET_RADIUS, LOD } from '../config/SceneConstants.js';
 
 /**
  * ExoplanetField - Renders thousands of NASA exoplanets as realistic 3D spheres
@@ -23,24 +22,15 @@ export class ExoplanetField {
         this.loaded = false;
         this.renderedPlanets = new Set(); // Track rendered planet IDs
 
-        // Visual settings - UNIFIED LINEAR SCALE (1:1 ratio, no boosts)
-        this.sceneScale = 10; // 1 light year = 10 scene units (ALL planets)
-        this.earthRadiusScale = 0.5; // 1 Earth radius = 0.5 scene units (ALL planets, no exceptions)
-
         // For compatibility with old code
         this.mesh = this.meshGroup;
 
-        // NEW: Texture loader for real photographic textures (Earth/Solar)
-        this.textureLoader = new THREE.TextureLoader();
-
         // LOD System - Distance-based texture loading
-        // Distance values are in world units (after x10000 scale)
-        // Optimized for performance - loads textures lazily to prevent freezing
         this.lodConfig = {
-            highDetailDistance: 2000000,    // 2 million units - more selective
-            mediumDetailDistance: 5000000,  // 5 million units - unload beyond this
-            updateInterval: 1000,           // Check every 1000ms (less frequent)
-            maxUpdatesPerFrame: 2           // Only 2 updates per frame to maintain 60fps
+            highDetailDistance: LOD.HIGH_DETAIL,
+            mediumDetailDistance: LOD.MEDIUM_DETAIL,
+            updateInterval: LOD.UPDATE_INTERVAL_MS,
+            maxUpdatesPerFrame: LOD.MAX_UPDATES_PER_FRAME,
         };
         this.lastLodUpdate = 0;
         this.planetMeshMap = new Map(); // Map planet name -> mesh for quick lookup
@@ -71,10 +61,6 @@ export class ExoplanetField {
 
         // Load in background
         this.loadClustersProgressively(otherClusters);
-
-        // APLICAR ESCALA x10000 DESPUÉS DE RENDERIZAR
-        console.log('🔧 Applying x10000 scale to all planets...');
-        this.meshGroup.scale.set(10000, 10000, 10000);
     }
 
     /**
@@ -108,31 +94,25 @@ export class ExoplanetField {
     async create3DMeshes(planetBatch = this.planets) {
         if (!planetBatch || planetBatch.length === 0) return;
 
-        // Shared geometries - Performance optimized
-        const lowPolyGeom = new THREE.SphereGeometry(1, 8, 6); // Tier 3: Far (very low poly)
-        lowPolyGeom.computeVertexNormals(); // Ensure normals face outward
+        // Shared geometries
+        const lowPolyGeom = new THREE.SphereGeometry(1, 12, 8); // Tier 3: Far
+        lowPolyGeom.computeVertexNormals();
 
-        const midPolyGeom = new THREE.SphereGeometry(1, 12, 10); // Tier 2: Medium
+        const midPolyGeom = new THREE.SphereGeometry(1, 16, 12); // Tier 2: Medium
         midPolyGeom.computeVertexNormals();
 
-        const highPolyGeom = new THREE.SphereGeometry(1, 24, 20); // Tier 1: Near (optimized)
+        const highPolyGeom = new THREE.SphereGeometry(1, 32, 24); // Tier 1: Near
         highPolyGeom.computeVertexNormals();
 
         const distantMaterials = new Map();
         const batchSize = 30; // Smaller batches for smoother execution
         let index = 0;
 
-        // Solar system planet names - render them with special handling
-        const solarSystemPlanets = ['Mercury', 'Venus', 'Earth', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto'];
-
         const processBatch = () => {
             const end = Math.min(index + batchSize, planetBatch.length);
 
             for (; index < end; index++) {
                 const planet = planetBatch[index];
-
-                // Check if this is a solar system planet
-                const isSolarPlanet = planet.hostname === 'Sun' && solarSystemPlanets.includes(planet.pl_name);
 
                 // Avoid rendering duplicates
                 if (this.renderedPlanets.has(planet.pl_name)) continue;
@@ -152,8 +132,7 @@ export class ExoplanetField {
                 );
                 const radiusInEarthRadii = planet.pl_rade || 1.0;
 
-                // TRUE 1:1 SCALE: No boosts, no exceptions
-                const radius = radiusInEarthRadii * this.earthRadiusScale;
+                const radius = Math.max(MIN_PLANET_RADIUS, Math.min(radiusInEarthRadii * EARTH_RADIUS_SCALE, MAX_PLANET_RADIUS));
 
                 let tier = 3;
                 if (distLY < 25) tier = 1;
@@ -170,10 +149,6 @@ export class ExoplanetField {
                     if (radPos.includes('jupiter') || radiusInEarthRadii > 6) planetType = 'gasGiant';
                     else if (radPos.includes('neptune') || radiusInEarthRadii > 2) planetType = 'iceGiant';
                 }
-
-                // Define textures and flags in outer scope of tier processing
-                let texture, specularMap, normalMap, emissiveMap;
-                let useRealTextures = false;
 
                 if (tier === 1) {
                     // Use enriched colors if available, otherwise generate
@@ -193,115 +168,29 @@ export class ExoplanetField {
                     const subType = planet.planetSubType || '';
 
                     if (subType === 'habitable' || subType === 'ice_world') {
-                        // Water/Ice: Specular highlights but not "wet plastic"
-                        roughness = 0.5; // Increased from 0.2
+                        roughness = 0.5;
                     } else if (subType === 'lava_world' || subType === 'hot_jupiter') {
-                        // Lava: Emissive glow
                         roughness = 0.8;
                         emissive = 0xff0000;
                         emissiveIntensity = 0.3;
                     } else if (subType === 'gas_giant' || subType === 'ice_giant') {
-                        // Giants: Dense atmosphere, slight sheen
                         roughness = 0.6;
                     }
 
-                    // SPECIAL HANDLING: Earth and Solar System
-                    const planetName = planet.pl_name || planet.name;
-                    const isEarth = planetName === 'Earth';
-
-                    if (isSolarPlanet || planet.isSolar || isEarth) {
-                        console.log(`🪐 Loading solar system planet: ${planetName}`);
-
-                        switch (planetName) {
-                            case 'Earth':
-                                texture = this.textureLoader.load('./textures/planets/earth/earth_day_2048.jpg');
-                                specularMap = this.textureLoader.load('./textures/planets/earth/earth_specular_2048.jpg');
-                                normalMap = this.textureLoader.load('./textures/planets/earth/earth_normal_2048.jpg');
-                                emissiveMap = this.textureLoader.load('./textures/planets/earth/earth_lights_2048.png');
-                                texture.colorSpace = THREE.SRGBColorSpace;
-                                if (emissiveMap) emissiveMap.colorSpace = THREE.SRGBColorSpace;
-                                useRealTextures = true;
-                                break;
-                            case 'Mars':
-                                texture = this.textureLoader.load('./textures/planets/mars/2k_mars.jpg');
-                                texture.colorSpace = THREE.SRGBColorSpace;
-                                normalMap = generateNormalMapAsync(512, 2.5).then(t => { if (mesh.material) mesh.material.normalMap = t; });
-                                // Note: normalMap above is a promise, handled differently or we wait. 
-                                // Actually, for solar system, let's keep it simple. 
-                                // The textureLoader is async but returns object immediately.
-                                // We can't easily mix sync and async here for Solar System without refactoring.
-                                // BUT exoplanets are the main issue.
-                                useRealTextures = true;
-                                break;
-                            case 'Jupiter':
-                                texture = this.textureLoader.load('./textures/planets/jupiter/2k_jupiter.jpg');
-                                texture.colorSpace = THREE.SRGBColorSpace;
-                                useRealTextures = true;
-                                break;
-                            case 'Saturn':
-                                texture = this.textureLoader.load('./textures/planets/saturn/2k_saturn.jpg');
-                                texture.colorSpace = THREE.SRGBColorSpace;
-                                useRealTextures = true;
-                                break;
-                            case 'Neptune':
-                                texture = this.textureLoader.load('./textures/planets/neptune/2k_neptune.jpg');
-                                texture.colorSpace = THREE.SRGBColorSpace;
-                                useRealTextures = true;
-                                break;
-                            case 'Uranus':
-                                texture = this.textureLoader.load('./textures/planets/uranus/2k_uranus.jpg');
-                                texture.colorSpace = THREE.SRGBColorSpace;
-                                useRealTextures = true;
-                                break;
-                            case 'Venus':
-                                texture = this.textureLoader.load('./textures/planets/venus/2k_venus_atmosphere.jpg');
-                                texture.colorSpace = THREE.SRGBColorSpace;
-                                useRealTextures = true;
-                                break;
-                            case 'Mercury':
-                                texture = this.textureLoader.load('./textures/planets/mercury/2k_mercury.jpg');
-                                texture.colorSpace = THREE.SRGBColorSpace;
-                                useRealTextures = true;
-                                break;
-                        }
-                    }
-
-                    // For non-solar planets (Exoplanets) in Tier 1:
-                    // Initialize with simple base color first, then UPGRADE to texture asynchronously.
-                    // This prevents blocking and fixes the ReferenceError.
-
+                    // Initialize with simple base color, then UPGRADE to texture asynchronously.
                     material = new THREE.MeshStandardMaterial({
-                        color: texture ? new THREE.Color(0xffffff) : new THREE.Color(colors.base), // White if textured
-                        roughness: isEarth ? 0.35 : roughness,
-                        metalness: isEarth ? 0.0 : metalness,
-                        emissive: (emissiveMap) ? new THREE.Color(0xffaa44) : (emissive || new THREE.Color(0x000000)),
-                        emissiveIntensity: emissiveMap ? 0.8 : emissiveIntensity,
-                        transparent: false, // NEVER transparent
+                        color: new THREE.Color(colors.base),
+                        roughness: roughness,
+                        metalness: metalness,
+                        emissive: emissive || new THREE.Color(0x000000),
+                        emissiveIntensity: emissiveIntensity,
+                        transparent: false,
                         opacity: 1.0,
                         alphaTest: 0,
                         depthWrite: true,
                         depthTest: true,
                         side: THREE.FrontSide
                     });
-
-                    // Add textures (for Solar System planets that used TextureLoader)
-                    if (texture) {
-                        material.map = texture;
-                        // Note: normalMap for solar system was not fully handled above for async.
-                        // Ideally we should move solar system to async too, or keep using loaders.
-                    }
-
-                    // Add emissive map if it exists (Earth night lights)
-                    if (emissiveMap) {
-                        material.emissiveMap = emissiveMap;
-                    }
-
-                    // Add specular/metalness for Earth water
-                    if (useRealTextures && isEarth && specularMap) {
-                        material.metalnessMap = specularMap;
-                        material.metalness = 0.5;
-                        material.roughness = 0.2;
-                    }
 
                 } else if (tier === 2) {
                     // Medium distance - simple colors, no textures
@@ -341,12 +230,11 @@ export class ExoplanetField {
                         material = new THREE.MeshStandardMaterial({
                             color: new THREE.Color(baseColor),
                             emissive: new THREE.Color(baseColor),
-                            emissiveIntensity: 0.8, // Bright glow
+                            emissiveIntensity: 0.6,
                             roughness: 1.0,
                             metalness: 0,
-                            transparent: false, // NEVER transparent
+                            transparent: false,
                             opacity: 1.0,
-                            alphaTest: 0,
                             depthWrite: true,
                             depthTest: true,
                             side: THREE.FrontSide
@@ -357,6 +245,7 @@ export class ExoplanetField {
 
                 const geometry = (tier === 1) ? highPolyGeom.clone() : (tier === 2 ? midPolyGeom.clone() : lowPolyGeom.clone());
                 geometry.scale(radius, radius, radius);
+                geometry.computeBoundingSphere(); // Required for raycaster after manual scale
 
                 const mesh = new THREE.Mesh(geometry, material);
 
@@ -368,17 +257,16 @@ export class ExoplanetField {
                     mesh.scale.set(1, 1.0 - planet.flattening, 1);
                 }
 
-                // UNIFIED POSITIONING: All planets use coordinates_3d (light-years → scene units)
+                // Position in scene units (light-years * LY_TO_SCENE)
                 mesh.position.set(
-                    coords.x_light_years * this.sceneScale,
-                    coords.y_light_years * this.sceneScale,
-                    coords.z_light_years * this.sceneScale
+                    coords.x_light_years * LY_TO_SCENE,
+                    coords.y_light_years * LY_TO_SCENE,
+                    coords.z_light_years * LY_TO_SCENE
                 );
 
                 mesh.userData.planetData = planet;
                 mesh.userData.planet = planet; // Compatibility
                 mesh.userData.planetName = planet.pl_name; // Compatibility
-                mesh.userData.isSolar = isSolarPlanet; // Mark solar system planets
 
                 // PBR Shadows
                 mesh.castShadow = true;
@@ -386,35 +274,15 @@ export class ExoplanetField {
 
                 // --- Geometry Enhancements (Tier 1 Only) ---
                 if (tier === 1) {
-                    const isEarth = (planet.pl_name || planet.name) === 'Earth';
-
-                    // 1. Earth Atmosphere & Clouds
-                    if (isEarth) {
-                        // Use cloud shader for Earth
-                        const cloudTex = this.textureLoader.load('./textures/planets/earth/earth_clouds_2048.png');
-                        cloudTex.colorSpace = THREE.SRGBColorSpace;
-
-                        const cloudMesh = createCloudLayer(radius, cloudTex);
-                        cloudMesh.material.uniforms.cloudOpacity.value = 0.5;
-                        cloudMesh.material.uniforms.cloudCoverage.value = 0.5;
-                        cloudMesh.name = 'EarthClouds';
-                        cloudMesh.userData.isClouds = true;
-                        mesh.add(cloudMesh);
-
-                        // Use atmosphere shader for Earth
-                        const atmosphereConfig = {
-                            color: 0x4a90e2,
-                            enabled: true
-                        };
-                        const atmosphereLayers = createAtmosphere(radius, atmosphereConfig);
+                    // Atmosphere for habitable exoplanets
+                    if (planet.atmosphere && planet.atmosphere.enabled) {
+                        const atmosphereLayers = createAtmosphere(radius, planet.atmosphere);
                         atmosphereLayers.forEach(layer => {
                             mesh.add(layer);
                         });
-                        mesh.name = 'Earth';
                     }
-                    // Removed atmosphere for other planets for performance
 
-                    // 2. Ring System
+                    // Ring System
                     if (planet.rings && planet.rings.enabled) {
                         const inner = planet.rings.innerRadius || 1.4;
                         const outer = planet.rings.outerRadius || 2.2;
@@ -452,7 +320,7 @@ export class ExoplanetField {
                 this.renderedPlanets.add(planet.pl_name);
 
                 // Trigger async upgrade for Tier 1 procedural planets
-                if (tier === 1 && !useRealTextures) {
+                if (tier === 1) {
                     this.upgradeToHighResTexture(mesh, planet);
                     this.loadedHighResTextures.add(planet.pl_name);
                 }
@@ -494,19 +362,6 @@ export class ExoplanetField {
      * @param {THREE.Vector3} spacecraftPosition - Current spacecraft world position (optional)
      */
     update(deltaTime, spacecraftPosition = null) {
-        // High-fidelity animation for Earth
-        const earthMesh = this.meshGroup.getObjectByName('Earth');
-        if (earthMesh) {
-            // Standard planetary rotation
-            earthMesh.rotation.y += deltaTime * 0.1;
-
-            // Dynamic clouds: rotating at a slightly different speed for realism
-            const clouds = earthMesh.getObjectByName('EarthClouds');
-            if (clouds) {
-                clouds.rotation.y += deltaTime * 0.03;
-            }
-        }
-
         // LOD System: Update planet textures based on distance from spacecraft
         if (spacecraftPosition) {
             this.updateLOD(spacecraftPosition);
@@ -537,8 +392,7 @@ export class ExoplanetField {
             const mesh = this.planetMeshMap.get(planetName);
             if (mesh) {
                 const planetData = mesh.userData.planetData || mesh.userData.planet;
-                if (planetData && !planetData.isSolar && !mesh.userData.isSolar) {
-                    // Properly downgrade to restore the correct base color
+                if (planetData) {
                     this.downgradeToLowResTexture(mesh, planetData);
                 }
             }
@@ -553,10 +407,8 @@ export class ExoplanetField {
             mesh.getWorldPosition(planetWorldPos);
             const distance = spacecraftPosition.distanceTo(planetWorldPos);
 
-            const planetData = mesh.userData.planetData || mesh.userData.planet;
-            if (planetData?.isSolar || mesh.userData.isSolar) continue;
-
             if (distance < this.lodConfig.highDetailDistance) {
+                const planetData = mesh.userData.planetData || mesh.userData.planet;
                 planetsToUpgrade.push({ planetName, mesh, planetData, distance });
             }
         }
@@ -622,9 +474,7 @@ export class ExoplanetField {
             const needsHighRes = distance < this.lodConfig.highDetailDistance;
             const hasHighRes = this.loadedHighResTextures.has(planetName);
 
-            // Skip solar system planets (they always have high-res textures)
             const planetData = mesh.userData.planetData || mesh.userData.planet;
-            if (planetData?.isSolar || mesh.userData.isSolar) continue;
 
             // Upgrade texture if close and not already high-res
             if (needsHighRes && !hasHighRes) {
@@ -751,13 +601,11 @@ export class ExoplanetField {
         return this.planets.find(planet => {
             const coords = planet.characteristics?.coordinates_3d;
             if (!coords) return false;
-
             const planetPos = new THREE.Vector3(
-                coords.x_light_years * this.sceneScale,
-                coords.y_light_years * this.sceneScale,
-                coords.z_light_years * this.sceneScale
+                coords.x_light_years * LY_TO_SCENE,
+                coords.y_light_years * LY_TO_SCENE,
+                coords.z_light_years * LY_TO_SCENE
             );
-
             return planetPos.distanceTo(position) < radius;
         });
     }

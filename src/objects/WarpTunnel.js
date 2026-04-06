@@ -39,38 +39,39 @@ export class WarpTunnel {
                 uniform vec3 color;
                 varying vec2 vUv;
 
-                // Simple pseudo-random
-                float random(vec2 st) {
-                    return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123);
+                float hash(vec2 p) {
+                    return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
                 }
 
                 void main() {
-                    // Create star streak effect
-                    
-                    // Scroll speed based on ship speed
-                    float scrollSpeed = speed * time * 5.0; // Faster scroll for streaks
-                    
-                    // Distort UVs to stretch stars
+                    float scroll = speed * time * 8.0;
                     vec2 uv = vUv;
-                    
-                    // Create grid for stars
-                    vec2 grid = vec2(uv.x * 40.0, (uv.y - scrollSpeed) * 10.0);
-                    vec2 ipos = floor(grid);
-                    vec2 fpos = fract(grid);
-                    
-                    // Random brightness for each cell
-                    float rnd = random(ipos);
-                    
-                    // Threshold to keep only few "stars"
-                    float star = smoothstep(0.9, 1.0, rnd);
-                    
-                    // Fade out at ends of cylinder
-                    float fade = smoothstep(0.0, 0.3, uv.y) * smoothstep(1.0, 0.7, uv.y);
-                    
-                    // Final intensity
+
+                    // Stretch the V axis based on speed for elongated streaks
+                    float stretch = 3.0 + speed * 15.0;
+                    vec2 grid = vec2(uv.x * 60.0, (uv.y - scroll) * stretch);
+                    vec2 cell = floor(grid);
+                    vec2 f = fract(grid);
+
+                    float rnd = hash(cell);
+
+                    // Fewer but brighter stars
+                    float star = smoothstep(0.92, 1.0, rnd);
+
+                    // Elongated streak shape — narrow horizontally, stretched vertically
+                    float streakX = smoothstep(0.5, 0.35, abs(f.x - 0.5));
+                    float streakY = smoothstep(0.0, 0.1, f.y) * smoothstep(1.0, 0.5, f.y);
+                    star *= streakX * streakY;
+
+                    // Color variation per star
+                    vec3 starColor = mix(color, vec3(0.6, 0.85, 1.0), rnd * 0.4);
+
+                    // Fade at cylinder ends
+                    float fade = smoothstep(0.0, 0.25, uv.y) * smoothstep(1.0, 0.75, uv.y);
+
                     float intensity = star * fade * opacity;
-                    
-                    gl_FragColor = vec4(color, intensity);
+
+                    gl_FragColor = vec4(starColor, intensity);
                 }
             `,
             transparent: true,
@@ -84,14 +85,13 @@ export class WarpTunnel {
     }
 
     update(deltaTime, currentSpeed, cameraPosition, cameraQuaternion) {
-        // Activation threshold
-        const threshold = 2000.0;
+        // Activation threshold (scaled for LY_TO_SCENE=3000)
+        const threshold = 50000.0;
 
         // Calculate targeted opacity based on speed
         let targetOpacity = 0;
         if (currentSpeed > threshold) {
-            // Fade in from 0 to 1 as speed goes from 2000 to ~20000
-            targetOpacity = Math.min(0.8, (currentSpeed - threshold) / 5000.0);
+            targetOpacity = Math.min(0.8, (currentSpeed - threshold) / 100000.0);
         }
 
         // Smoothly interpolate opacity

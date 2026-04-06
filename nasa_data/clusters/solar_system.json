@@ -36,14 +36,14 @@
       },
       "orbit_type": "Circular - Hot Zone",
       "coordinates_3d": {
-        "x_parsecs": null,
-        "y_parsecs": null,
-        "z_parsecs": null,
-        "x_light_years": null,
-        "y_light_years": null,
-        "z_light_years": null,
-        "system": "Unknown",
-        "note": "Coordinates unavailable"
+        "x_parsecs": 1.8759229019999998e-06,
+        "y_parsecs": 0.0,
+        "z_parsecs": 2.2782526199999996e-07,
+        "x_light_years": 6.1184699999999995e-06,
+        "y_light_years": 0.0,
+        "z_light_years": 7.430699999999999e-07,
+        "system": "Earth-centered (converted from AU)",
+        "note": "Converted from heliocentric AU to light-years"
       },
       "icrs_coordinates": {
         "right_ascension": {
@@ -114,14 +114,14 @@
       },
       "orbit_type": "Circular - Hot Zone",
       "coordinates_3d": {
-        "x_parsecs": null,
-        "y_parsecs": null,
-        "z_parsecs": null,
-        "x_light_years": null,
-        "y_light_years": null,
-        "z_light_years": null,
-        "system": "Unknown",
-        "note": "Coordinates unavailable"
+        "x_parsecs": 3.5046311579999996e-06,
+        "y_parsecs": 0.0,
+        "z_parsecs": 2.0843587799999996e-07,
+        "x_light_years": 1.1430629999999999e-05,
+        "y_light_years": 0.0,
+        "z_light_years": 6.798299999999999e-07,
+        "system": "Earth-centered (converted from AU)",
+        "note": "Converted from heliocentric AU to light-years"
       },
       "icrs_coordinates": {
         "right_ascension": {
@@ -192,14 +192,14 @@
       },
       "orbit_type": "Circular - Habitable Zone",
       "coordinates_3d": {
-        "x_parsecs": null,
-        "y_parsecs": null,
-        "z_parsecs": null,
-        "x_light_years": null,
-        "y_light_years": null,
-        "z_light_years": null,
-        "system": "Unknown",
-        "note": "Coordinates unavailable"
+        "x_parsecs": 4.847345999999999e-06,
+        "y_parsecs": 0.0,
+        "z_parsecs": 0.0,
+        "x_light_years": 1.581e-05,
+        "y_light_years": 0.0,
+        "z_light_years": 0.0,
+        "system": "Earth-centered (converted from AU)",
+        "note": "Converted from heliocentric AU to light-years"
       },
       "icrs_coordinates": {
         "right_ascension": {
@@ -270,14 +270,14 @@
       },
       "orbit_type": "Elliptical - Cold Zone",
       "coordinates_3d": {
-        "x_parsecs": null,
-        "y_parsecs": null,
-        "z_parsecs": null,
-        "x_light_years": null,
-        "y_light_years": null,
-        "z_light_years": null,
-        "system": "Unknown",
-        "note": "Coordinates unavailable"
+        "x_parsecs": 7.3873553039999994e-06,
+        "y_parsecs": 0.0,
+        "z_parsecs": 2.37519954e-07,
+        "x_light_years": 2.409444e-05,
+        "y_light_years": 0.0,
+        "z_light_years": 7.7469e-07,
+        "system": "Earth-centered (converted from AU)",
+        "note": "Converted from heliocentric AU to light-years"
       },
       "icrs_coordinates": {
         "right_ascension": {
@@ -348,14 +348,14 @@
       },
       "orbit_type": "Circular - Cold Zone",
       "coordinates_3d": {
-        "x_parsecs": null,
-        "y_parsecs": null,
-        "z_parsecs": null,
-        "x_light_years": null,
-        "y_light_years": null,
-        "z_light_years": null,
-        "system": "Unknown",
-        "note": "Coordinates unavailable"
+        "x_parsecs": 2.5220741237999998e-05,
+        "y_parsecs": 0.0,
+        "z_parsecs": 5.71986828e-07,
+        "x_light_years": 8.225943e-05,
+        "y_light_years": 0.0,
+        "z_light_years": 1.8655799999999998e-06,
+        "system": "Earth-centered (converted from AU)",
+        "note": "Converted from heliocentric AU to light-years"
       },
       "icrs_coordinates": {
         "right_ascension": {
@@ -426,14 +426,14 @@
       },
       "orbit_type": "Circular - Cold Zone",
       "coordinates_3d": {
-        "x_parsecs": null,
-        "y_parsecs": null,
-        "z_parsecs": null,
-        "x_light_years": null,
-        "y_light_years": null,
-        "z_light_years": null,
-        "system": "Unknown",
-        "note": "Coordinates unavailable"
+        "x_parsecs": 4.6229138802e-05,
+        "y_parsecs": 0.0,
+        "z_parsecs": 2.001953898e-06,
+        "x_light_years": 0.00015077997,
+        "y_light_years": 0.0,
+        "z_light_years": 6.5295299999999995e-06,
+        "system": "Earth-centered (converted from AU)",
+        "note": "Converted from heliocentric AU to light-years"
       },
       "icrs_coordinates": {
         "right_ascension": {
@@ -504,14 +504,14 @@
       },
       "orbit_type": "Circular - Frozen Zone",
       "coordinates_3d": {
-        "x_parsecs": null,
-        "y_parsecs": null,
-        "z_parsecs": null,
-        "x_light_years": null,
-        "y_light_years": null,
-        "z_light_years": null,
-        "system": "Unknown",
-        "note": "Coordinates unavailable"
+        "x_parsecs": 9.302541708599999e-05,
+        "y_parsecs": 0.0,
+        "z_parsecs": 1.255462614e-06,
+        "x_light_years": 0.00030340970999999996,
+        "y_light_years": 0.0,
+        "z_light_years": 4.09479e-06,
+        "system": "Earth-centered (converted from AU)",
+        "note": "Converted from heliocentric AU to light-years"
       },
       "icrs_coordinates": {
         "right_ascension": {
@@ -582,14 +582,14 @@
       },
       "orbit_type": "Circular - Frozen Zone",
       "coordinates_3d": {
-        "x_parsecs": null,
-        "y_parsecs": null,
-        "z_parsecs": null,
-        "x_light_years": null,
-        "y_light_years": null,
-        "z_light_years": null,
-        "system": "Unknown",
-        "note": "Coordinates unavailable"
+        "x_parsecs": 0.000145754846874,
+        "y_parsecs": 0.0,
+        "z_parsecs": 4.498337088e-06,
+        "x_light_years": 0.00047539089,
+        "y_light_years": 0.0,
+        "z_light_years": 1.467168e-05,
+        "system": "Earth-centered (converted from AU)",
+        "note": "Converted from heliocentric AU to light-years"
       },
       "icrs_coordinates": {
         "right_ascension": {
@@ -660,14 +660,14 @@
       },
       "orbit_type": "Highly Elliptical - Frozen Zone",
       "coordinates_3d": {
-        "x_parsecs": null,
-        "y_parsecs": null,
-        "z_parsecs": null,
-        "x_light_years": null,
-        "y_light_years": null,
-        "z_light_years": null,
-        "system": "Unknown",
-        "note": "Coordinates unavailable"
+        "x_parsecs": 0.000191382914772,
+        "y_parsecs": 0.0,
+        "z_parsecs": 5.7479828867999996e-05,
+        "x_light_years": 0.00062421042,
+        "y_light_years": 0.0,
+        "z_light_years": 0.00018747498,
+        "system": "Earth-centered (converted from AU)",
+        "note": "Converted from heliocentric AU to light-years"
       },
       "icrs_coordinates": {
         "right_ascension": {

@@ -63,7 +63,10 @@ class InputManager {
             if (e.code === 'KeyT') this.callbacks.onToggleNavigator?.();
             if (e.code === 'KeyH') this.callbacks.onToggleUI?.();
             if (e.code === 'KeyN') this.callbacks.onNarrateClosest?.();
-            if (e.code === 'Escape') this.callbacks.onCloseNavigator?.();
+            if (e.code === 'Escape') {
+                this.callbacks.onCloseNavigator?.();
+                this.callbacks.onUntarget?.();
+            }
         });
 
         window.addEventListener('keyup', (e) => {
@@ -113,6 +116,7 @@ class InputManager {
 
         // Raycasting for planet selection
         const raycaster = new THREE.Raycaster();
+        raycaster.params.Points.threshold = 50; // Easier to click stars/points
         const mouseVec = new THREE.Vector2();
 
         window.addEventListener('click', (event) => {
@@ -140,32 +144,33 @@ class InputManager {
 
             if (this.deps.cameraManager && this.deps.cameraManager.camera) {
                 raycaster.setFromCamera(mouseVec, this.deps.cameraManager.camera);
-                const intersects = raycaster.intersectObjects(this.deps.sceneManager.scene.children, true);
+
+                // Only raycast against planet groups (not stars — 109K points would be slow)
+                const targets = [];
+                if (this.deps.exoplanetField?.meshGroup) targets.push(this.deps.exoplanetField.meshGroup);
+                if (this.deps.solarSystemField?.group) targets.push(this.deps.solarSystemField.group);
+
+                const intersects = raycaster.intersectObjects(targets, true);
 
                 if (intersects.length > 0) {
-                    const hit = intersects.find(intersect => {
+                    // Find the closest hit that has planetData
+                    let planetData = null;
+                    let hitObject = null;
+                    for (const intersect of intersects) {
                         let obj = intersect.object;
                         while (obj) {
-                            if (obj.userData && obj.userData.planetData) return true;
-                            obj = obj.parent;
-                        }
-                        return false;
-                    });
-
-                    if (hit) {
-                        let targetObj = hit.object;
-                        let planetData = null;
-                        while (targetObj) {
-                            if (targetObj.userData && targetObj.userData.planetData) {
-                                planetData = targetObj.userData.planetData;
+                            if (obj.userData?.planetData) {
+                                planetData = obj.userData.planetData;
+                                hitObject = obj;
                                 break;
                             }
-                            targetObj = targetObj.parent;
+                            obj = obj.parent;
                         }
+                        if (planetData) break;
+                    }
 
-                        if (planetData) {
-                            this.callbacks.onPlanetClick?.(planetData, hit.object);
-                        }
+                    if (planetData) {
+                        this.callbacks.onPlanetClick?.(planetData, hitObject);
                     }
                 }
             }

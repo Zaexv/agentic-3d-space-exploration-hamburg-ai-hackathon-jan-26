@@ -12,24 +12,25 @@ export class Spacecraft {
     constructor() {
         this.group = new THREE.Group();
 
-        // Start in space
-        this.group.position.set(0, 0, 0);
+        // Start just outside Earth (~500 units above Earth's surface)
+        // Earth is at roughly (-9625, -2506, -1086) with radius 200
+        this.group.position.set(-9625, -2006, -1086);
 
-        // Constant forward speed
-        this.minSpeed = 15.0;
-        this.maxSpeed = 200000.0;
-        this.forwardSpeed = 30.0;
-        this.autopilotSpeed = 100.0;
+        // Constant forward speed (scaled for AU_TO_SCENE=10000)
+        this.minSpeed = 100.0;
+        this.maxSpeed = 2000000.0;
+        this.forwardSpeed = 500.0;
+        this.autopilotSpeed = 2000.0;
 
         // Arcade flight parameters
-        this.turnSpeed = 1.5; // Faster turns
-        this.pitchSpeed = 1.2; // Faster pitch
+        this.turnSpeed = 1.5;
+        this.pitchSpeed = 1.2;
         this.bankLimit = 0.6;
-        this.strafeFactor = 30.0; // More drift
-        this.autoLevelSpeed = 4.0; // Snappier auto-leveling
-        this.strafeDecay = 4.0; // Snappier strafe decay
+        this.strafeFactor = 500.0;
+        this.autoLevelSpeed = 4.0;
+        this.strafeDecay = 4.0;
 
-        this.steeringForce = 8;
+        this.steeringForce = 200;
         this.velocity = new THREE.Vector3(0, 0, 0);
         this.lateralVelocity = 0; // Strafe speed component
 
@@ -192,19 +193,10 @@ export class Spacecraft {
             this.updateManualControl(keys, deltaTime);
         }
 
-        // Apply constant forward motion
+        // Move straight forward — no drift, no strafe
         const forward = new THREE.Vector3(1, 0, 0);
         forward.applyQuaternion(this.group.quaternion);
-        this.velocity.copy(forward).multiplyScalar(this.forwardSpeed);
-
-        // Apply lateral strafe (drift) - side vector is +Z (Right)
-        // Multiplying by lateralVelocity (negative on Left turn) moves us towards -Z (Left)
-        const side = new THREE.Vector3(0, 0, 1);
-        side.applyQuaternion(this.group.quaternion);
-        this.velocity.add(side.multiplyScalar(this.lateralVelocity));
-
-        // Update position
-        this.group.position.add(this.velocity.clone().multiplyScalar(deltaTime));
+        this.group.position.addScaledVector(forward, this.forwardSpeed * deltaTime);
     }
 
     updateAutopilot(deltaTime) {
@@ -224,122 +216,58 @@ export class Spacecraft {
 
     updateManualControl(keys, deltaTime) {
         // 1. Speed Control (W/S)
-        // 1. Speed Control (W/S) - Exponential Acceleration
-        // Scaling acceleration based on current speed allows reaching high speeds reasonably
-        // Adjusted factor for smoother control at high speeds
         const acceleration = Math.max(50.0, this.forwardSpeed * 1.5);
-
         if (keys.speedUp) this.forwardSpeed += acceleration * deltaTime;
         if (keys.speedDown) this.forwardSpeed -= acceleration * deltaTime;
-
-        // Ensure perpetual motion within range
         this.forwardSpeed = THREE.MathUtils.clamp(this.forwardSpeed, this.minSpeed, this.maxSpeed);
 
-        // 2. Turning (Arrows Left/Right)
-        // turnInput: 1 for Left, -1 for Right
-        let turnInput = (keys.left ? 1 : 0) - (keys.right ? 1 : 0);
+        // 2. Yaw — track heading angle directly (prevents gimbal lock / upside-down)
+        if (!this._yaw) this._yaw = 0;
+        if (!this._pitch) this._pitch = 0;
 
-        if (Math.abs(turnInput) > 0.01) {
-            // Local Yaw Rotation (around local Y axis)
-            // Positive rotateY is CCW (Left) when nose is +X
-            this.group.rotateY(turnInput * this.turnSpeed * deltaTime);
+        const turnInput = (keys.left ? 1 : 0) - (keys.right ? 1 : 0);
+        const pitchInput = (keys.up ? 1 : 0) - (keys.down ? 1 : 0);
 
-            // Lateral Strafe (Drift effect)
-            // +Z is Left, so positive lateralVelocity = Drift Left
-            const targetStrafe = turnInput * this.strafeFactor;
-            this.lateralVelocity = THREE.MathUtils.lerp(this.lateralVelocity, targetStrafe, deltaTime * 5);
-        } else {
-            // Decay strafe when not turning
-            this.lateralVelocity = THREE.MathUtils.lerp(this.lateralVelocity, 0, deltaTime * this.strafeDecay);
-        }
+        this._yaw += turnInput * this.turnSpeed * deltaTime;
+        this._pitch += pitchInput * this.pitchSpeed * deltaTime;
 
-        // 3. Pitching (Arrows Up/Down)
-        let pitchInput = (keys.up ? 1 : 0) - (keys.down ? 1 : 0);
-        if (Math.abs(pitchInput) > 0.01) {
-            // Local Pitch (around local Z axis)
-            // Positive rotateZ is Pitch Up
-            this.group.rotateZ(pitchInput * this.pitchSpeed * deltaTime);
-        }
+        // Clamp pitch so ship never flips (max ±80 degrees)
+        this._pitch = THREE.MathUtils.clamp(this._pitch, -1.4, 1.4);
 
-        // 4. Auto-Banking (Roll)
-        // Tilting left around +X axis... 
-        // In Three.js, Positive X rotation usually banks Right if looking down +X.
-        // So targetBank = -turnInput * bankLimit.
+        // Build orientation: yaw around world Y, then pitch around local Z
+        // This keeps the ship's "up" always roughly aligned with world Y
+        const euler = new THREE.Euler(0, this._yaw, this._pitch, 'YXZ');
+        this.group.quaternion.setFromEuler(euler);
+
+        // 3. Visual banking on the mesh (cosmetic only)
         const targetBank = -turnInput * this.bankLimit;
         this.mesh.rotation.x = THREE.MathUtils.lerp(this.mesh.rotation.x, targetBank, deltaTime * this.autoLevelSpeed);
     }
 
     updateCamera(camera) {
-        let offset = (this.viewMode === 'COCKPIT')
-            ? new THREE.Vector3(15, 3, 0)
-            : new THREE.Vector3(-120, 35, 0);
-        let lookAhead = (this.viewMode === 'COCKPIT')
-            ? new THREE.Vector3(60, 0, 0)
-            : new THREE.Vector3(20, 0, 0);
+        // Ship forward is +X. Camera sits behind (-X) and above (+Y).
+        const isCockpit = this.viewMode === 'COCKPIT';
 
-        offset.applyQuaternion(this.group.quaternion).add(this.group.position);
+        // Local-space offsets
+        const camOffset = isCockpit
+            ? new THREE.Vector3(12, 4, 0)
+            : new THREE.Vector3(-50, 18, 0);
 
-        // Dynamic camera catch-up based on speed AND distance
-        const distance = camera.position.distanceTo(offset);
-        let lerpFactor = 0.1;
+        const lookOffset = isCockpit
+            ? new THREE.Vector3(100, 2, 0)
+            : new THREE.Vector3(50, 5, 0);
 
-        // Dynamic FOV Effect (Warp Speed Sensation)
-        // Base FOV is usually 60 or 75. We widen it as speed increases.
-        const baseFOV = 60;
-        const maxFOV = 100;
-        // Normalize speed for effect (0 to 1 range for speeds 0 to 5000)
-        const effectIntensity = Math.min(this.forwardSpeed / 5000, 1.0);
+        // Transform to world space
+        const targetPos = camOffset.applyQuaternion(this.group.quaternion).add(this.group.position);
+        const targetLook = lookOffset.applyQuaternion(this.group.quaternion).add(this.group.position);
 
-        const targetFOV = THREE.MathUtils.lerp(baseFOV, maxFOV, effectIntensity);
-        // Smoothly interpolate current FOV to target
-        camera.fov = THREE.MathUtils.lerp(camera.fov, targetFOV, 0.05);
+        // Always snap — no lag, no lerp, no jitter
+        camera.position.copy(targetPos);
+        camera.lookAt(targetLook);
+
+        // Fixed FOV
+        camera.fov = 70;
         camera.updateProjectionMatrix();
-
-        if (this.viewMode === 'COCKPIT') {
-            // FIX: Hard lock for cockpit to prevent jitter/float
-            lerpFactor = 1.0;
-        } else {
-            // Speed-based camera follow: faster ship = snappier camera
-            // This prevents camera lag and clipping at high speeds
-            const speedRatio = Math.min(this.forwardSpeed / 1000, 1.0); // Normalize to 0-1 for speeds up to 1000
-            const baseMinLerp = 0.1;
-            const baseMaxLerp = 0.8;
-
-            // Higher speed = higher base lerp factor
-            lerpFactor = THREE.MathUtils.lerp(baseMinLerp, baseMaxLerp, speedRatio);
-
-            // Distance-based adjustments (tighter thresholds for responsiveness)
-            const speedAdjustedThreshold = Math.max(50, 200 - speedRatio * 150);
-
-            if (distance > speedAdjustedThreshold) {
-                // Camera falling behind - increase lerp
-                lerpFactor = Math.min(lerpFactor + 0.3, 0.95);
-            }
-
-            if (distance > speedAdjustedThreshold * 3) {
-                // Camera way behind - snap harder
-                lerpFactor = 0.98;
-            }
-
-            if (distance > speedAdjustedThreshold * 10 || this.forwardSpeed > 50000) {
-                // Warp speed or extreme lag - hard teleport to prevent clipping
-                camera.position.copy(offset);
-                lerpFactor = 1.0;
-            }
-        }
-
-        camera.position.lerp(offset, lerpFactor);
-
-        // Camera Shake Effect at high speeds
-        if (this.forwardSpeed > 500) {
-            const shakeIntensity = Math.min((this.forwardSpeed - 500) / 5000, 1.0) * 0.5;
-            camera.position.x += (Math.random() - 0.5) * shakeIntensity;
-            camera.position.y += (Math.random() - 0.5) * shakeIntensity;
-            camera.position.z += (Math.random() - 0.5) * shakeIntensity;
-        }
-
-        lookAhead.applyQuaternion(this.group.quaternion).add(this.group.position);
-        camera.lookAt(lookAhead);
     }
 
     checkProximity(planets) {
@@ -395,6 +323,7 @@ export class Spacecraft {
 
     update(deltaTime, nearbyPlanets = []) {
         this.animationTime += deltaTime;
+        this._lastDt = deltaTime;
 
         // Check proximity to nearby planets to adjust speed
         this.checkProximity(nearbyPlanets);

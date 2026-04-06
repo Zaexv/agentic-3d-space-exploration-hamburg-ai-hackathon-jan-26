@@ -2,9 +2,12 @@ import * as THREE from 'three';
 import { SceneManager } from './src/core/Scene.js';
 import { CameraManager } from './src/core/Camera.js';
 import { RendererManager } from './src/core/Renderer.js';
-import { StarField } from './src/objects/StarField.js';
+import { RealStarField } from './src/objects/RealStarField.js';
 import { Spacecraft } from './src/objects/Spacecraft.js';
 import { PlanetDataService } from './src/services/PlanetDataService.js';
+import { SimulationClock } from './src/services/SimulationClock.js';
+import { SolarSystemService } from './src/services/SolarSystemService.js';
+import { SolarSystemField } from './src/objects/SolarSystemField.js';
 import { ExoplanetField } from './src/objects/ExoplanetField.js';
 import { LoadingManager } from './src/utils/LoadingManager.js';
 import { PlanetNavigator } from './src/controls/PlanetNavigator.js';
@@ -15,10 +18,7 @@ import { ProximityDetector } from './src/utils/ProximityDetector.js';
 import AIService from './src/ai/AIService.js';
 import { NarratorDialog } from './src/ui/NarratorDialog.js';
 import { CONFIG, isAIConfigured } from './src/config/config.js';
-import { WarpTunnel } from './src/objects/WarpTunnel.js';
-import { GalaxyField } from './src/objects/GalaxyField.js';
-import { SpaceDust } from './src/objects/SpaceDust.js';
-import { SpaceDebris } from './src/objects/SpaceDebris.js';
+// WarpTunnel removed — clean space view
 import { InputManager } from './src/controls/InputManager.js';
 import { HUDManager } from './src/ui/HUDManager.js';
 import { TeleportController } from './src/utils/TeleportController.js';
@@ -28,6 +28,7 @@ class App {
         this.canvas = document.getElementById('canvas');
         this.loadingManager = new LoadingManager();
         this.controlsEnabled = true;
+        this._solarMode = true;
 
         this.init();
     }
@@ -55,6 +56,7 @@ class App {
                 onToggleUI: () => this.hudManager.toggleUI(this.planetNavigator),
                 onNarrateClosest: () => this.narrateClosestPlanet(),
                 onPlanetClick: (planetData, hitObject) => this.handlePlanetClick(planetData, hitObject),
+                onUntarget: () => this.untargetPlanet(),
             });
             this.inputManager.setupControls();
             this.inputManager.setupMouse(this.canvas);
@@ -75,11 +77,12 @@ class App {
                 cameraManager: this.cameraManager,
                 sceneManager: this.sceneManager,
                 exoplanetField: this.exoplanetField,
+                solarSystemField: this.solarSystemField,
                 targetingSquare: this.targetingSquare,
                 planetNavigator: this.planetNavigator,
             });
 
-            this.teleportController = new TeleportController(this.spacecraft, this.exoplanetField);
+            this.teleportController = new TeleportController(this.spacecraft, this.exoplanetField, this.solarSystemField);
             this.loadingManager.completeStep('Universe');
 
             // Step 4: Start animation and finalize
@@ -122,6 +125,7 @@ class App {
     // --- Scene Setup ---
 
     async createSceneObjects() {
+        this.simulationClock = new SimulationClock();
         await this.initializePlanetDataService();
         await this.createEnvironment();
         await this.loadAllPlanets();
@@ -134,28 +138,30 @@ class App {
     }
 
     async createEnvironment() {
-        this.starField = new StarField(15000, 2000000);
-        this.sceneManager.add(this.starField.mesh);
-
-        this.galaxyField = new GalaxyField(5000000, 500);
-        this.sceneManager.add(this.galaxyField.group);
-
-        this.warpTunnel = new WarpTunnel();
-        this.sceneManager.add(this.warpTunnel.group);
-
-        this.spaceDust = new SpaceDust(2000, 400);
-        this.sceneManager.add(this.spaceDust.mesh);
-
-        this.spaceDebris = new SpaceDebris(this.sceneManager.scene, 40, 4000);
+        // Real stars from HYG database (109K+ real stars with accurate positions and colors)
+        this.realStarField = new RealStarField();
+        await this.realStarField.load();
+        this.sceneManager.add(this.realStarField.mesh);
     }
 
     async loadAllPlanets() {
         try {
+            // Solar system (live ephemeris)
+            this.solarSystemService = new SolarSystemService(this.simulationClock);
+            this.solarSystemField = new SolarSystemField(this.solarSystemService);
+            await this.solarSystemField.load();
+            this.sceneManager.add(this.solarSystemField.mesh);
+
+            // Register solar system bodies in the planet data service
+            // so they appear in PlanetNavigator and ProximityDetector
+            const solarBodies = this.solarSystemService.getBodyPositions();
+            for (const body of solarBodies) {
+                this.planetDataService.allPlanets.push(body);
+            }
+
+            // Exoplanets (from NASA cluster JSONs)
             this.exoplanetField = new ExoplanetField(this.planetDataService);
-
-            await this.planetDataService.loadSolarSystem();
             await this.exoplanetField.load();
-
             if (this.exoplanetField.mesh) {
                 this.sceneManager.add(this.exoplanetField.mesh);
             }
@@ -202,7 +208,7 @@ class App {
         }
 
         this.explorationDialog = new PlanetExplorationDialog(aiService, this);
-        this.proximityDetector = new ProximityDetector(this.planetDataService, this.exoplanetField);
+        this.proximityDetector = new ProximityDetector(this.planetDataService, this.exoplanetField, this.solarSystemField);
         this.narratorDialog = new NarratorDialog(aiService);
 
         window.planetExplorationDialog = this.explorationDialog;
@@ -230,13 +236,23 @@ class App {
         this.lastClickedPlanet = planetData;
 
         if (this.targetingSquare) {
-            const parentGroup = this.exoplanetField?.meshGroup;
+            const parentGroup = hitObject.userData?.isSolar
+                ? this.solarSystemField?.group
+                : this.exoplanetField?.meshGroup;
             this.targetingSquare.target(hitObject, planetData, parentGroup);
         }
 
         if (this.explorationDialog) {
             this.explorationDialog.show(planetData);
         }
+    }
+
+    untargetPlanet() {
+        if (this.targetingSquare) this.targetingSquare.hide();
+        if (this.explorationDialog) this.explorationDialog.hide?.();
+        if (this.narratorDialog && this.narratorDialog.isShowing()) this.narratorDialog.hide?.();
+        this.lastClickedPlanet = null;
+        this.closeModal();
     }
 
     handleViewToggle() {
@@ -269,7 +285,9 @@ class App {
         if (!closest) return;
 
         if (this.targetingSquare && closest.mesh) {
-            const parentGroup = this.exoplanetField?.meshGroup;
+            const parentGroup = closest.mesh.userData?.isSolar
+                ? this.solarSystemField?.group
+                : this.exoplanetField?.meshGroup;
             this.targetingSquare.target(closest.mesh, closest.planet, parentGroup);
         }
 
@@ -290,8 +308,18 @@ class App {
 
         const deltaTime = this.clock.getDelta();
 
+        // Advance simulation clock
+        if (this.simulationClock) {
+            this.simulationClock.update(deltaTime);
+        }
+
         if (this.planets) {
             this.planets.forEach(planet => planet.update(deltaTime));
+        }
+
+        // Update solar system positions from ephemeris
+        if (this.solarSystemField) {
+            this.solarSystemField.update(deltaTime);
         }
 
         if (this.exoplanetField) {
@@ -313,32 +341,38 @@ class App {
             this.planetHoverInfo.update();
         }
 
-        if (this.warpTunnel && this.spacecraft) {
-            this.warpTunnel.update(
-                deltaTime,
-                this.spacecraft.getSpeed(),
-                this.cameraManager.camera.position,
-                this.cameraManager.camera.quaternion
-            );
-        }
-
-        if (this.spaceDust && this.spacecraft) {
-            const speed = this.spacecraft.getSpeed();
-            const direction = new THREE.Vector3(0, 0, -1);
-            direction.applyQuaternion(this.spacecraft.group.quaternion);
-            this.spaceDust.update(this.spacecraft.group.position, speed, direction);
-        }
-
-        if (this.nebulaField && this.spacecraft) {
-            this.nebulaField.update(deltaTime, this.spacecraft.group.position);
-        }
-
-        if (this.spaceDebris && this.spacecraft) {
-            this.spaceDebris.update(deltaTime, this.spacecraft.group.position);
-        }
-
         if (this.targetingSquare) {
             this.targetingSquare.update(this.cameraManager.camera);
+        }
+
+        // ─── Adaptive Scale: Switch between solar and interstellar mode ─────
+        if (this.spacecraft && this.solarSystemField && this.exoplanetField) {
+            const distFromSun = this.spacecraft.group.position.length();
+            const THRESHOLD = 600000; // SOLAR_MODE_RADIUS from SceneConstants
+
+            if (distFromSun < THRESHOLD) {
+                // SOLAR MODE
+                if (!this._solarMode) {
+                    this._solarMode = true;
+                    this.solarSystemField.group.visible = true;
+                    this.exoplanetField.meshGroup.visible = false;
+                    this.cameraManager.camera.near = 1;
+                    this.cameraManager.camera.far = 2000000;
+                    this.cameraManager.camera.updateProjectionMatrix();
+                }
+            } else {
+                // INTERSTELLAR MODE
+                if (this._solarMode !== false) {
+                    this._solarMode = false;
+                    this.solarSystemField.group.visible = false;
+                    this.exoplanetField.meshGroup.visible = true;
+                    this.cameraManager.camera.near = 1;
+                    this.cameraManager.camera.far = 20000000;
+                    this.cameraManager.camera.updateProjectionMatrix();
+                }
+            }
+            // Stars always visible
+            if (this.realStarField?.mesh) this.realStarField.mesh.visible = true;
         }
 
         this.rendererManager.render(
@@ -356,7 +390,8 @@ class App {
         this.planets?.forEach(planet => planet.dispose());
         this.rendererManager.dispose();
         this.exoplanetField?.dispose();
-        this.dynamicStarField?.dispose();
+        this.solarSystemField?.dispose();
+        this.realStarField?.dispose();
     }
 }
 

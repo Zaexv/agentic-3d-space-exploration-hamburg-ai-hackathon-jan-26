@@ -40,10 +40,10 @@ export async function loadSolarSystemPlanets() {
                                 p.pl_name === 'Venus' ? 0xffcc88 :
                                     p.pl_name === 'Mercury' ? 0xaaaaaa : 0x0088ff,
             position: {
-                // UNIFIED: Use coordinates_3d if available, otherwise fallback to position
-                x: p.characteristics?.coordinates_3d?.x_light_years ? p.characteristics.coordinates_3d.x_light_years * sceneScale : p.position.x * 200,
-                y: p.characteristics?.coordinates_3d?.y_light_years ? p.characteristics.coordinates_3d.y_light_years * sceneScale : p.position.y * 200,
-                z: p.characteristics?.coordinates_3d?.z_light_years ? p.characteristics.coordinates_3d.z_light_years * sceneScale : p.position.z * 200
+                // Solar system planets: use AU position * sceneScale (consistent with ExoplanetField/TeleportController)
+                x: p.position.x * sceneScale,
+                y: p.position.y * sceneScale,
+                z: p.position.z * sceneScale
             },
             atmosphere: {
                 enabled: p.characteristics?.atmosphere_type !== 'None',

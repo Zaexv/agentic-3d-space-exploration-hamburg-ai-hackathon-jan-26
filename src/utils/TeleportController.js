@@ -1,33 +1,34 @@
 import * as THREE from 'three';
+import { AU_TO_SCENE, LY_TO_SCENE, EARTH_RADIUS_SCALE } from '../config/SceneConstants.js';
 
 export class TeleportController {
-    constructor(spacecraft, exoplanetField) {
+    constructor(spacecraft, exoplanetField, solarSystemField) {
         this.spacecraft = spacecraft;
         this.exoplanetField = exoplanetField;
+        this.solarSystemField = solarSystemField;
     }
 
     teleportToPlanet(planet) {
         if (!planet) return;
 
-        console.log(`🚀 Teleporting to ${planet.pl_name}`);
+        console.log(`Teleporting to ${planet.pl_name}`);
 
         let targetPosition;
-        const globalScale = 10000;
 
-        const isSolarPlanet = planet.hostname === 'Sun';
+        const isSolarPlanet = planet.isSolar || planet.hostname === 'Sun';
         if (isSolarPlanet && planet.position) {
             targetPosition = new THREE.Vector3(
-                planet.position.x * 10 * globalScale,
-                planet.position.y * 10 * globalScale,
-                planet.position.z * 10 * globalScale
+                planet.position.x * AU_TO_SCENE,
+                planet.position.y * AU_TO_SCENE,
+                planet.position.z * AU_TO_SCENE
             );
         }
         else if (planet.characteristics?.coordinates_3d) {
             const coords = planet.characteristics.coordinates_3d;
             targetPosition = new THREE.Vector3(
-                coords.x_light_years * 10 * globalScale,
-                coords.y_light_years * 10 * globalScale,
-                coords.z_light_years * 10 * globalScale
+                coords.x_light_years * LY_TO_SCENE,
+                coords.y_light_years * LY_TO_SCENE,
+                coords.z_light_years * LY_TO_SCENE
             );
         }
 
@@ -38,7 +39,7 @@ export class TeleportController {
 
         this.createTeleportFlash();
 
-        const planetRadius = (planet.pl_rade || 1.0) * 0.5 * globalScale;
+        const planetRadius = (planet.pl_rade || 1.0) * EARTH_RADIUS_SCALE;
         const offset = planetRadius * 1.5;
         const direction = targetPosition.clone().normalize();
         const approachPosition = targetPosition.clone().sub(direction.multiplyScalar(offset));
@@ -48,7 +49,7 @@ export class TeleportController {
 
             if (this.spacecraft.velocity) {
                 this.spacecraft.velocity.set(0, 0, 0);
-                this.spacecraft.forwardSpeed = 100.0;
+                this.spacecraft.forwardSpeed = 500.0;
             }
 
             this.spacecraft.group.lookAt(targetPosition);
@@ -57,7 +58,7 @@ export class TeleportController {
                 this.exoplanetField.forceRefreshLOD(this.spacecraft.getPosition());
             }
 
-            console.log(`✓ Teleported to ${planet.pl_name} at distance ${offset.toFixed(0)} units`);
+            console.log(`Teleported to ${planet.pl_name} at distance ${offset.toFixed(0)} units`);
         }, 200);
     }
 
