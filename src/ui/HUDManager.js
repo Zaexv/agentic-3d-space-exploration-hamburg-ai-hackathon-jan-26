@@ -5,9 +5,27 @@
 export class HUDManager {
     constructor() {
         this.uiVisible = true;
+        this.helpPanel = null;
+        this.flightHUD = null;
+        this.axisIndicator = null;
     }
 
-    updateHUD(spacecraft, targetingSquare) {
+    setHelpPanel(helpPanel) {
+        this.helpPanel = helpPanel;
+        this.helpPanel?.setEnabled?.(this.uiVisible);
+    }
+
+    setFlightHUD(flightHUD) {
+        this.flightHUD = flightHUD;
+        this.flightHUD?.setEnabled?.(this.uiVisible);
+    }
+
+    setAxisIndicator(axisIndicator) {
+        this.axisIndicator = axisIndicator;
+        this.axisIndicator?.setEnabled?.(this.uiVisible);
+    }
+
+    updateHUD(spacecraft, targetingSquare, camera) {
         if (!spacecraft) return;
 
         const position = spacecraft.group.position;
@@ -32,6 +50,8 @@ export class HUDManager {
             heading.textContent = `${degrees.toFixed(1)}°`;
         }
 
+        // Update axis gizmo from camera (world axes relative to screen)
+        this.axisIndicator?.updateFromCamera?.(camera);
         this.updateTargetDisplay(targetingSquare);
     }
 
@@ -68,24 +88,11 @@ export class HUDManager {
             }
         });
 
-        if (planetNavigator) {
-            planetNavigator.container.style.display = this.uiVisible ? 'flex' : 'none';
-        }
-
-        const toggleBtn = document.getElementById('toggle-ui-btn');
-        if (toggleBtn) {
-            toggleBtn.style.opacity = this.uiVisible ? '1' : '0.3';
-        }
+        // Planet navigator is menu-only; never show/hide it here.
     }
 
     setupUIControls(toggleCallback, closeModalCallback) {
-        const toggleBtn = document.getElementById('toggle-ui-btn');
-        if (toggleBtn) {
-            toggleBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                toggleCallback();
-            });
-        }
+        // UI visibility toggle button is decoupled (src/ui/ui-visibility-toggle).
 
         const modalClose = document.getElementById('modal-close');
         const modalOverlay = document.getElementById('modal-overlay');
@@ -101,5 +108,7 @@ export class HUDManager {
                 closeModalCallback();
             });
         }
+
+        // Help panel owns its own DOM + events (src/ui/help-panel).
     }
 }

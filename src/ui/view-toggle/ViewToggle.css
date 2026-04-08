@@ -1,0 +1,29 @@
+.view-toggle-btn {
+    position: fixed;
+    bottom: var(--spacing-lg);
+    left: calc(var(--spacing-lg) + 88px);
+    width: 34px;
+    height: 34px;
+    border-radius: 999px;
+    border: 1px solid rgba(0, 212, 255, 0.35);
+    background: rgba(0, 0, 0, 0.25);
+    color: rgba(0, 212, 255, 0.9);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    z-index: 12000;
+    pointer-events: auto;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 0 10px rgba(0, 212, 255, 0.12);
+}
+
+.view-toggle-btn:hover {
+    background: rgba(0, 212, 255, 0.12);
+}
+
+.view-toggle-btn .material-symbols-outlined {
+    font-size: 18px;
+    line-height: 1;
+    font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 20;
+}
+

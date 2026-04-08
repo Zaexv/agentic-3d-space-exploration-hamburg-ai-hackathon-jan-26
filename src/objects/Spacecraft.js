@@ -184,13 +184,14 @@ export class Spacecraft {
     }
 
     steer(keys, deltaTime, mouseInput = { x: 0, y: 0 }) {
-        const isSteering = keys.left || keys.right || keys.up || keys.down || keys.speedUp || keys.speedDown || keys.boost || keys.brake;
+        const isSteering = keys.left || keys.right || keys.up || keys.down || keys.speedUp || keys.speedDown || keys.boost || keys.brake ||
+            Math.abs(mouseInput.x) > 0.02 || Math.abs(mouseInput.y) > 0.02;
         if (isSteering) this.disengageAutopilot();
 
         if (this.autopilot.enabled && this.autopilot.target) {
             this.updateAutopilot(deltaTime);
         } else {
-            this.updateManualControl(keys, deltaTime);
+            this.updateManualControl(keys, deltaTime, mouseInput);
         }
 
         // Move straight forward — no drift, no strafe
@@ -214,7 +215,7 @@ export class Spacecraft {
         this.group.quaternion.slerp(targetQuaternion, 2.0 * deltaTime);
     }
 
-    updateManualControl(keys, deltaTime) {
+    updateManualControl(keys, deltaTime, mouseInput = { x: 0, y: 0 }) {
         // 1. Speed Control (W/S)
         const acceleration = Math.max(50.0, this.forwardSpeed * 1.5);
         if (keys.speedUp) this.forwardSpeed += acceleration * deltaTime;
@@ -225,8 +226,12 @@ export class Spacecraft {
         if (!this._yaw) this._yaw = 0;
         if (!this._pitch) this._pitch = 0;
 
-        const turnInput = (keys.left ? 1 : 0) - (keys.right ? 1 : 0);
-        const pitchInput = (keys.up ? 1 : 0) - (keys.down ? 1 : 0);
+        const turnKeys = (keys.left ? 1 : 0) - (keys.right ? 1 : 0);
+        const pitchKeys = (keys.up ? 1 : 0) - (keys.down ? 1 : 0);
+
+        // Analog input (virtual joystick / mouse drag). X = yaw, Y = pitch.
+        const turnInput = THREE.MathUtils.clamp(turnKeys + mouseInput.x, -1, 1);
+        const pitchInput = THREE.MathUtils.clamp(pitchKeys + (-mouseInput.y), -1, 1);
 
         this._yaw += turnInput * this.turnSpeed * deltaTime;
         this._pitch += pitchInput * this.pitchSpeed * deltaTime;

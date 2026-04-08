@@ -10,7 +10,7 @@ import { SolarSystemService } from './src/services/SolarSystemService.js';
 import { SolarSystemField } from './src/objects/SolarSystemField.js';
 import { ExoplanetField } from './src/objects/ExoplanetField.js';
 import { LoadingManager } from './src/utils/LoadingManager.js';
-import { PlanetNavigator } from './src/controls/PlanetNavigator.js';
+import { PlanetNavigator } from './src/ui/planet-navigator/PlanetNavigator.js';
 import { PlanetHoverInfo } from './src/utils/PlanetHoverInfo.js';
 import { PlanetExplorationDialog } from './src/ui/PlanetExplorationDialog.js';
 import { PlanetTargetingSquare } from './src/ui/PlanetTargetingSquare.js';
@@ -22,6 +22,13 @@ import { CONFIG, isAIConfigured } from './src/config/config.js';
 import { InputManager } from './src/controls/InputManager.js';
 import { HUDManager } from './src/ui/HUDManager.js';
 import { TeleportController } from './src/utils/TeleportController.js';
+import { HelpPanel } from './src/ui/help-panel/HelpPanel.js';
+import { FlightHUD } from './src/ui/flight-hud/FlightHUD.js';
+import { AxisIndicator } from './src/ui/axis-indicator/AxisIndicator.js';
+import { PauseMenu } from './src/ui/pause-menu/PauseMenu.js';
+import { UIVisibilityToggle } from './src/ui/ui-visibility-toggle/UIVisibilityToggle.js';
+import { ViewToggle } from './src/ui/view-toggle/ViewToggle.js';
+import { SpeedControls } from './src/ui/speed-controls/SpeedControls.js';
 
 class App {
     constructor() {
@@ -49,11 +56,39 @@ class App {
             // Step 2: Setup controls
             this.loadingManager.updateStatus('Configuring Controls', 'Mapping keyboard and mouse...');
             this.hudManager = new HUDManager();
+            this.helpPanel = new HelpPanel();
+            this.helpPanel.mountToDOM();
+            this.hudManager.setHelpPanel(this.helpPanel);
+            this.flightHUD = new FlightHUD();
+            this.flightHUD.mountToDOM();
+            this.hudManager.setFlightHUD(this.flightHUD);
+            this.axisIndicator = new AxisIndicator();
+            this.axisIndicator.mountToDOM();
+            this.hudManager.setAxisIndicator(this.axisIndicator);
+
+            this.paused = false;
+            this.pauseMenu = new PauseMenu();
+            this.pauseMenu.mountToDOM();
+            this.pauseMenu.onPauseChange((paused) => this.setPaused(paused));
+
+            this.uiVisibilityToggle = new UIVisibilityToggle();
+            this.uiVisibilityToggle.mountToDOM();
+
+            this.viewToggle = new ViewToggle({ onToggle: () => this.handleViewToggle() });
+            this.viewToggle.mountToDOM();
+
+            this.speedControls = new SpeedControls({
+                onIncrease: () => this.adjustSpeed(1),
+                onDecrease: () => this.adjustSpeed(-1),
+            });
+            this.speedControls.mountToDOM();
+
             this.inputManager = new InputManager(this.canvas, {
                 onViewToggle: () => this.handleViewToggle(),
                 onToggleNavigator: () => this.togglePlanetNavigator(),
                 onCloseNavigator: () => this.closePlanetNavigator(),
-                onToggleUI: () => this.hudManager.toggleUI(this.planetNavigator),
+                onToggleUI: () => this.uiVisibilityToggle.toggle(),
+                onOpenMenu: () => this.pauseMenu?.open?.(),
                 onNarrateClosest: () => this.narrateClosestPlanet(),
                 onPlanetClick: (planetData, hitObject) => this.handlePlanetClick(planetData, hitObject),
                 onUntarget: () => this.untargetPlanet(),
@@ -88,7 +123,7 @@ class App {
             // Step 4: Start animation and finalize
             this.loadingManager.updateStatus('Starting Mission', 'Engaging warp drive...');
             this.hudManager.setupUIControls(
-                () => this.hudManager.toggleUI(this.planetNavigator),
+                () => this.uiVisibilityToggle.toggle(),
                 () => this.closeModal()
             );
             window.addEventListener('resize', () => this.onWindowResize());
@@ -186,6 +221,7 @@ class App {
             (planet) => this.teleportController?.teleportToPlanet(planet)
         );
         this.planetNavigator.loadPlanets();
+        this.pauseMenu?.setPlanetNavigator?.(this.planetNavigator);
 
         setTimeout(() => this.setupSpAIceButton(), 100);
 
@@ -262,12 +298,23 @@ class App {
         }
     }
 
+    adjustSpeed(direction) {
+        if (!this.spacecraft) return;
+        const sign = direction >= 0 ? 1 : -1;
+        const cur = this.spacecraft.forwardSpeed || 0;
+        const step = Math.max(50, cur * 0.12);
+        const next = cur + sign * step;
+        this.spacecraft.forwardSpeed = Math.min(this.spacecraft.maxSpeed, Math.max(this.spacecraft.minSpeed, next));
+    }
+
     togglePlanetNavigator() {
-        if (this.planetNavigator) this.planetNavigator.toggle();
+        // Navigator is now menu-only; open the pause menu directly.
+        this.pauseMenu?.open?.();
+        this.pauseMenu?.setView?.('navigator');
     }
 
     closePlanetNavigator() {
-        if (this.planetNavigator) this.planetNavigator.hide();
+        this.pauseMenu?.close?.();
     }
 
     showLastClickedPlanetInfo() {
@@ -308,6 +355,18 @@ class App {
 
         const deltaTime = this.clock.getDelta();
 
+        if (this.paused) {
+            // Keep UI responsive and render the scene "frozen".
+            if (this.spacecraft) {
+                this.hudManager.updateHUD(this.spacecraft, this.targetingSquare, this.cameraManager.camera);
+            }
+            this.rendererManager.render(
+                this.sceneManager.scene,
+                this.cameraManager.camera
+            );
+            return;
+        }
+
         // Advance simulation clock
         if (this.simulationClock) {
             this.simulationClock.update(deltaTime);
@@ -334,7 +393,7 @@ class App {
             this.spacecraft.update(deltaTime, nearbyObjects);
             this.spacecraft.updateCamera(this.cameraManager.camera);
 
-            this.hudManager.updateHUD(this.spacecraft, this.targetingSquare);
+            this.hudManager.updateHUD(this.spacecraft, this.targetingSquare, this.cameraManager.camera);
         }
 
         if (this.planetHoverInfo) {
@@ -379,6 +438,12 @@ class App {
             this.sceneManager.scene,
             this.cameraManager.camera
         );
+    }
+
+    setPaused(paused) {
+        this.paused = Boolean(paused);
+        // Prevent stuck large delta after unpausing.
+        this.clock.getDelta();
     }
 
     onWindowResize() {

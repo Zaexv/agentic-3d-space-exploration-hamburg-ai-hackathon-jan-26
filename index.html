@@ -9,9 +9,9 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="loading.css">
     <link rel="stylesheet" href="ui-style.css">
-    <link rel="stylesheet" href="planet-navigator.css">
     <link rel="stylesheet" href="narrator-dialog.css">
     <link rel="stylesheet" href="src/ui/planet-exploration-dialog.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:FILL@0..1" />
     <!-- Google AdSense verification -->
     <meta name="google-adsense-account" content="ca-pub-3319018370947299">
     <!-- Google AdSense -->
@@ -103,95 +103,11 @@
     <div id="app">
         <canvas id="canvas"></canvas>
 
-        <!-- TOP LEFT: Flight HUD -->
-        <div id="flight-hud" class="ui-panel">
-            <div class="panel-header">
-                <h2 class="panel-title">Flight Systems</h2>
-            </div>
-
-            <div class="hud-section">
-                <div class="hud-label">Velocity</div>
-                <div class="hud-value large accent" id="hud-velocity">0.00 u/s</div>
-            </div>
-
-            <div class="hud-section">
-                <div class="hud-label">Position (Light Years)</div>
-                <div class="hud-grid">
-                    <div class="hud-grid-item">
-                        <div class="hud-label">X</div>
-                        <div class="hud-value" id="hud-pos-x">0.0</div>
-                    </div>
-                    <div class="hud-grid-item">
-                        <div class="hud-label">Y</div>
-                        <div class="hud-value" id="hud-pos-y">0.0</div>
-                    </div>
-                    <div class="hud-grid-item">
-                        <div class="hud-label">Z</div>
-                        <div class="hud-value" id="hud-pos-z">0.0</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="hud-section">
-                <div class="hud-label">Heading</div>
-                <div class="hud-value" id="hud-heading">0.0°</div>
-            </div>
-
-            <!-- Debug: Key States -->
-
-        </div>
+        <!-- Flight HUD UI is mounted dynamically (src/ui/flight-hud) -->
 
         <!-- TOP RIGHT: Mission Status - REMOVED -->
 
-        <!-- BOTTOM LEFT: Controls Reference -->
-        <div id="controls-panel" class="ui-panel">
-            <div class="panel-header">
-                <h2 class="panel-title">Spacecraft Command</h2>
-            </div>
-
-            <div class="control-group">
-                <div class="control-group-title">Flight (Arcade)</div>
-                <div class="control-item">
-                    <span class="control-key">W / S</span>
-                    <span class="control-description">Speed +/-</span>
-                </div>
-                <div class="control-item">
-                    <span class="control-key">← / →</span>
-                    <span class="control-description">Turn & Bank</span>
-                </div>
-                <div class="control-item">
-                    <span class="control-key">↑ / ↓</span>
-                    <span class="control-description">Pitch Up/Down</span>
-                </div>
-
-            </div>
-
-            <div class="control-group">
-                <div class="control-group-title">Navigation</div>
-                <div class="control-item">
-                    <span class="control-key">T</span>
-                    <span class="control-description">Planet Selector</span>
-                </div>
-                <div class="control-item">
-                    <span class="control-key">CLICK</span>
-                    <span class="control-description">Planet Info</span>
-                </div>
-
-            </div>
-
-            <div class="control-group">
-                <div class="control-group-title">View</div>
-                <div class="control-item">
-                    <span class="control-key">H</span>
-                    <span class="control-description">Toggle UI</span>
-                </div>
-                <div class="control-item">
-                    <button id="btn-toggle-view" class="modal-btn"
-                        style="width: 100%; margin-top: 10px; font-size: 11px; padding: 5px;">[ V ] Switch View</button>
-                </div>
-            </div>
-
-        </div>
+        <!-- Help panel UI is mounted dynamically (src/ui/help-panel) -->
 
         <!-- Cockpit Overlay -->
         <div id="cockpit-overlay" class="cockpit-overlay">
@@ -226,9 +142,6 @@
             </div>
         </div>
 
-        <!-- Toggle UI Button -->
-        <button class="toggle-btn" id="toggle-ui-btn">UI</button>
-        
         <!-- SpAIce Floating Button -->
         <button class="spaice-floating-btn" id="spaice-btn" title="Talk to SpAIce (N)">
             <div class="spaice-btn-face">
