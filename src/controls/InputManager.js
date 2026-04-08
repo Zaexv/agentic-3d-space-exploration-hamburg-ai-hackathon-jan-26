@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { VirtualJoystick } from '../ui/virtual-joystick/VirtualJoystick.js';
 
 class InputManager {
     constructor(canvas, callbacks = {}) {
@@ -20,6 +21,12 @@ class InputManager {
         this.mouse = { x: 0, y: 0 };
 
         this.controlsEnabled = true;
+
+        this._joystick = new VirtualJoystick({ mount: document.body });
+        this._joystick.mountToDOM();
+        this._joystickActive = false;
+        this._joystickPointerId = null;
+        this._suppressClick = false;
     }
 
     setDependencies(deps) {
@@ -103,17 +110,67 @@ class InputManager {
     }
 
     setupMouse(canvas) {
+        // Important for mobile/touch: prevent browser gestures from cancelling pointer events.
+        canvas.style.touchAction = 'none';
+
         canvas.addEventListener('mousemove', (e) => {
-            const rect = canvas.getBoundingClientRect();
-            const centerX = rect.width / 2;
-            const centerY = rect.height / 2;
-            this.mouse.x = (e.clientX - rect.left - centerX) / (centerX * 0.8);
-            this.mouse.y = (e.clientY - rect.top - centerY) / (centerY * 0.8);
-            this.mouse.x = Math.max(-1, Math.min(1, this.mouse.x));
-            this.mouse.y = Math.max(-1, Math.min(1, this.mouse.y));
+            // Steering input must only come from click+drag joystick.
+            // So when not actively dragging, force analog input to zero.
+            if (!this._joystickActive) {
+                this.mouse.x = 0;
+                this.mouse.y = 0;
+                return;
+            }
         });
 
         canvas.style.cursor = 'default';
+
+        // Virtual joystick steering (pointer drag)
+        canvas.addEventListener('pointerdown', (e) => {
+            // Only primary button / touch
+            if (e.button !== undefined && e.button !== 0) return;
+            if (e.pointerType === 'mouse' && e.ctrlKey) return;
+
+            // Don't start joystick when clicking UI elements (just in case)
+            const target = e.target;
+            if (target.closest?.('.ui-panel') || target.closest?.('button') || target.closest?.('input')) return;
+
+            e.preventDefault();
+            this._joystickActive = true;
+            this._joystickPointerId = e.pointerId;
+            canvas.setPointerCapture?.(e.pointerId);
+            this._joystick.showAt(e.clientX, e.clientY);
+            this.mouse.x = 0;
+            this.mouse.y = 0;
+        }, { passive: false });
+
+        canvas.addEventListener('pointermove', (e) => {
+            if (!this._joystickActive) return;
+            if (this._joystickPointerId !== null && e.pointerId !== this._joystickPointerId) return;
+            e.preventDefault();
+            const v = this._joystick.updatePointer(e.clientX, e.clientY);
+            // Map drag to analog [-1..1], but only when it's a real drag.
+            // This prevents steering on simple click without movement.
+            this.mouse.x = v.dragging ? Math.max(-1, Math.min(1, v.x)) : 0;
+            this.mouse.y = v.dragging ? Math.max(-1, Math.min(1, v.y)) : 0;
+            if (v.dragging) this._suppressClick = true;
+        }, { passive: false });
+
+        const endJoystick = (e) => {
+            if (!this._joystickActive) return;
+            if (this._joystickPointerId !== null && e.pointerId !== this._joystickPointerId) return;
+            this._joystickActive = false;
+            this._joystickPointerId = null;
+            this._joystick.hide();
+            // Reset analog input
+            this.mouse.x = 0;
+            this.mouse.y = 0;
+            // Let the browser finish the click sequence, then clear suppression.
+            setTimeout(() => { this._suppressClick = false; }, 0);
+        };
+
+        canvas.addEventListener('pointerup', endJoystick, { passive: true });
+        canvas.addEventListener('pointercancel', endJoystick, { passive: true });
 
         // Raycasting for planet selection
         const raycaster = new THREE.Raycaster();
@@ -121,6 +178,7 @@ class InputManager {
         const mouseVec = new THREE.Vector2();
 
         window.addEventListener('click', (event) => {
+            if (this._suppressClick) return;
             const target = event.target;
             if (target.closest('.ui-panel') ||
                 target.closest('.modal-overlay') ||

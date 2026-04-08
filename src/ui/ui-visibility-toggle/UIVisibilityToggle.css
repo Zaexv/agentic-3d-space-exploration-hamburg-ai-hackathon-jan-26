@@ -52,3 +52,13 @@ body.ui-hidden #controls-help-btn {
     display: none !important;
 }
 
+/* Hide view toggle when UI hidden */
+body.ui-hidden #view-toggle-btn {
+    display: none !important;
+}
+
+body.ui-hidden #speed-down-btn,
+body.ui-hidden #speed-up-btn {
+    display: none !important;
+}
+

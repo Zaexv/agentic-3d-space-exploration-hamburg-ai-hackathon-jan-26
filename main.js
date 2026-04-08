@@ -27,6 +27,8 @@ import { FlightHUD } from './src/ui/flight-hud/FlightHUD.js';
 import { AxisIndicator } from './src/ui/axis-indicator/AxisIndicator.js';
 import { PauseMenu } from './src/ui/pause-menu/PauseMenu.js';
 import { UIVisibilityToggle } from './src/ui/ui-visibility-toggle/UIVisibilityToggle.js';
+import { ViewToggle } from './src/ui/view-toggle/ViewToggle.js';
+import { SpeedControls } from './src/ui/speed-controls/SpeedControls.js';
 
 class App {
     constructor() {
@@ -71,6 +73,15 @@ class App {
 
             this.uiVisibilityToggle = new UIVisibilityToggle();
             this.uiVisibilityToggle.mountToDOM();
+
+            this.viewToggle = new ViewToggle({ onToggle: () => this.handleViewToggle() });
+            this.viewToggle.mountToDOM();
+
+            this.speedControls = new SpeedControls({
+                onIncrease: () => this.adjustSpeed(1),
+                onDecrease: () => this.adjustSpeed(-1),
+            });
+            this.speedControls.mountToDOM();
 
             this.inputManager = new InputManager(this.canvas, {
                 onViewToggle: () => this.handleViewToggle(),
@@ -285,6 +296,15 @@ class App {
             this.spacecraft.toggleView();
             this.hudManager.updateViewUI(this.spacecraft);
         }
+    }
+
+    adjustSpeed(direction) {
+        if (!this.spacecraft) return;
+        const sign = direction >= 0 ? 1 : -1;
+        const cur = this.spacecraft.forwardSpeed || 0;
+        const step = Math.max(50, cur * 0.12);
+        const next = cur + sign * step;
+        this.spacecraft.forwardSpeed = Math.min(this.spacecraft.maxSpeed, Math.max(this.spacecraft.minSpeed, next));
     }
 
     togglePlanetNavigator() {
